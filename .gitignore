@@ -1,0 +1,24 @@
+# bluespec ignores
+*.bo
+*.ba
+*.bi
+
+# ignore verilog since it is generated
+*.v
+
+# C/C++ ignores
+*.o
+*.so
+*.cxx
+
+# generic hardware ignores
+*.hex
+*.bin
+
+# general ignore
+*.log
+~*
+*.sw?
+.DS_Store
+
+# project directories
