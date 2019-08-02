@@ -1,0 +1,6 @@
+[submodule "upstream-bsv/Piccolo"]
+	path = upstream-bsv/Piccolo
+	url = https://github.com/jsburke/Piccolo
+[submodule "upstream-bsv/Flute"]
+	path = upstream-bsv/Flute
+	url = https://github.com/jsburke/Flute
