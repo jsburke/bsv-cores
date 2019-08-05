@@ -54,6 +54,9 @@ symlinks: submodules $(UPSTREAM_SRC)
 	@ln -s $(UPSTREAM_REF)/src_Core/Near_Mem_VM              $(UPSTREAM_SRC)/Near_Mem_VM 
 	@ln -s $(UPSTREAM_REF)/src_Core/PLIC                     $(UPSTREAM_SRC)/PLIC 
 	@ln -s $(UPSTREAM_REF)/src_Core/RegFiles                 $(UPSTREAM_SRC)/RegFiles
+	@ln -s $(UPSTREAM_REF)/src_Testbench/SoC                 $(UPSTREAM_SRC)/SoC
+	@ln -s $(UPSTREAM_REF)/src_Testbench/Top                 $(UPSTREAM_SRC)/Top
+	@ln -s $(UPSTREAM_REF)/src_Testbench/Fabrics             $(UPSTREAM_SRC)/Fabrics
 	@mkdir -p $(UPSTREAM_SRC)/CPU/{Piccolo,Flute,Common}
 	@ln -s $(UPSTREAM_REF)/src_Core/CPU/CPU_Decode_C.bsv     $(UPSTREAM_SRC)/CPU/Common/CPU_Decode_C.bsv
 	@ln -s $(UPSTREAM_REF)/src_Core/CPU/CPU_Fetch_C.bsv      $(UPSTREAM_SRC)/CPU/Common/CPU_Fetch_C.bsv
