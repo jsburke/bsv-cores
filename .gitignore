@@ -22,4 +22,4 @@
 .DS_Store
 
 # project directories
-upstream-bsv/bsv/
+upstream/src

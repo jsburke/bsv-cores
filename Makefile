@@ -21,8 +21,8 @@ REF_CORE   ?= Flute
 ##                                             ##
 #################################################
 
-UPSTREAM     = $(HERE)/upstream-bsv
-UPSTREAM_SRC = $(UPSTREAM)/bsv
+UPSTREAM     = $(HERE)/upstream
+UPSTREAM_SRC = $(UPSTREAM)/src
 FLUTE_DIR    = $(UPSTREAM_SRC)/Flute
 PICCOLO_DIR  = $(UPSTREAM_SRC)/Piccolo
 UPSTREAM_REF = $(UPSTREAM)/$(REF_CORE)
