@@ -36,7 +36,6 @@ UPSTREAM_REF = $(UPSTREAM)/$(REF_CORE)
 .PHONY: submodules
 submodules:
 	@if git submodule status | egrep -q '^[-]|^[+]' ; then \
-	    echo "INFO: Need to reinitialize git submodules"; \
 	    git submodule update --init --recursive; \
 	fi
 
