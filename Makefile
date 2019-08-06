@@ -14,7 +14,7 @@ HERE = $(patsubst %/,%,$(dir $(abspath $(MAKEFILE_LIST))))
 
   # where to base most symlinks from
 REF_CORE   ?= Flute
-COMMON_SRC  = 
+
 #################################################
 ##                                             ##
 ##  Directories of Interest                    ##
