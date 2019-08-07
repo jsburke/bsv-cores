@@ -77,7 +77,8 @@ BSC_VSIM_DIRS  = -bdir $(BSV_BUILD) -vdir   $(BSV_VERILOG) -info-dir $(BSV_INFO)
 BSC_OPTS       = -keep-fires -aggressive-conditions -no-warn-action-shadowing -no-show-timestamps -check-assert -show-range-conflict
 BSC_DONT_WARN  = -suppress-warnings G0020
 BSC_RTS        = +RTS -K128M -RTS
-BSC_NON_CPU    = $(subst $(SPACE),:,$(addprefix $(UPSTREAM_SRC)/,$(filter-out CPU,$(patsubst $(UPSTREAM_SRC)/%/,%,$(wildcard $(UPSTREAM_SRC)/*/)))))
+BSC_NON_CPU    = $(subst $(SPACE),:,$(addprefix $(UPSTREAM_SRC)/,$(filter-out Fabrics,$(filter-out CPU,$(patsubst $(UPSTREAM_SRC)/%/,%,$(wildcard $(UPSTREAM_SRC)/*/))))))
+BSC_FABRICS    = $(wildcard $(UPSTREAM_SRC)/Fabrics/*/)
 BSC_PATH       = -p $(UPSTREAM_SRC)/CPU/Common:$(UPSTREAM_SRC)/CPU/$(CORE):$(BSC_NON_CPU):+
 BSV_TOP        = $(UPSTREAM_SRC)/Top/Top_HW_Side.bsv
 
@@ -97,7 +98,7 @@ VERILATOR_OBJ = $(INST_DIR)/obj
 
 .PHONY: dummy
 dummy:
-	@echo "$(BSC_PATH)"
+	@echo "$(BSC_FABRICS)"
 
 .PHONY: submodules
 submodules:
