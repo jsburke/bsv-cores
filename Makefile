@@ -42,9 +42,12 @@ ifeq ($(PRIV),)
   PRIV += -D ISA_PRIV_U
 endif
 
+NEAR_MEM ?= -D Near_Mem_Caches
+# NEAR_MEM ?= -D Near_Mem_TCM
+
 INSTANCE ?= $(shell echo $(CORE)$(ARCH) $(EXT) $(PRIV) | sed -e "s/-D//g" -e "s/ISA_/__/" -e "s/PRIV_/__/" -e "s/ //g" -e "s/ISA_//g" -e "s/PRIV_//g" -e "s/__/_/g")
 
-CORE_DEFINES = $(ARCH) $(FABRIC) $(EXT) $(PRIV)
+CORE_DEFINES = $(ARCH) $(FABRIC) $(EXT) $(PRIV) $(NEAR_MEM)
 
 #################################################
 ##                                             ##
@@ -56,6 +59,7 @@ UPSTREAM     = $(HERE)/upstream
 UPSTREAM_SRC = $(UPSTREAM)/src
 FLUTE_DIR    = $(UPSTREAM_SRC)/Flute
 PICCOLO_DIR  = $(UPSTREAM_SRC)/Piccolo
+
 
 BUILD_DIR    = $(HERE)/build
 INST_DIR     = $(BUILD_DIR)/$(INSTANCE)
@@ -71,16 +75,21 @@ BSV_VERILOG   = $(INST_DIR)/verilog
 BSV_INFO      = $(INST_DIR)/info
 BSV_SIM       = $(INST_DIR)/sim
 
-BSC_BSIM_DIRS  = -bdir $(BSV_BUILD) -simdir $(BSV_SIM)     -info-dir $(BSV_INFO)
-BSC_VSIM_DIRS  = -bdir $(BSV_BUILD) -vdir   $(BSV_VERILOG) -info-dir $(BSV_INFO)
+BSIM_DIRS  = -bdir $(BSV_BUILD) -simdir $(BSV_SIM)     -info-dir $(BSV_INFO)
+VSIM_DIRS  = -bdir $(BSV_BUILD) -vdir   $(BSV_VERILOG) -info-dir $(BSV_INFO)
 
 BSC_OPTS       = -keep-fires -aggressive-conditions -no-warn-action-shadowing -no-show-timestamps -check-assert -show-range-conflict
 BSC_DONT_WARN  = -suppress-warnings G0020
 BSC_RTS        = +RTS -K128M -RTS
+
 BSC_NON_CPU    = $(subst $(SPACE),:,$(addprefix $(UPSTREAM_SRC)/,$(filter-out Fabrics,$(filter-out CPU,$(patsubst $(UPSTREAM_SRC)/%/,%,$(wildcard $(UPSTREAM_SRC)/*/))))))
-BSC_FABRICS    = $(subst $(SPACE),:,$(addprefix $(UPSTREAM_SRC)/Fabrics/,$(filter-out README_Fabrics.txt,$(patsubst $(UPSTREAM_SRC)/Fabrics/%,%,$(wildcard $(UPSTREAM_SRC)/Fabrics/*/)))))
+
+FABRICS_DIR  = $(UPSTREAM_SRC)/Fabrics/
+BSC_FABRICS    = $(subst $(SPACE),:,$(addprefix $(FABRICS_DIR),$(filter-out README_Fabrics.txt,$(patsubst $(FABRICS_DIR)%,%,$(wildcard $(FABRICS_DIR)*/)))))
+
 BSC_PATH       = -p $(UPSTREAM_SRC)/CPU/Common:$(UPSTREAM_SRC)/CPU/$(CORE):$(BSC_NON_CPU):$(BSC_FABRICS):+
 BSV_TOP        = $(UPSTREAM_SRC)/Top/Top_HW_Side.bsv
+BSIM_EXE       = $(INST_DIR)/bsim 
 
 #################################################
 ##                                             ##
@@ -121,5 +130,5 @@ clean:
 
 .PHONY: bsim
 bsim: $(INST_DIR)
-	bsc -u -elab -sim $(BSC_SIM_DIRS) $(CORE_DEFINES) $(BSC_OPTS) $(BSC_DONT_WARN) $(BSC_RTS) $(BSC_PATH) $(BSV_TOP)
-	bsc -sim -parallel-sim link 8 $(BSC_SIM_DIRS) -e mkTop_HW_Side -o $(BSIM_EXE) -Xc++  -D_GLIBCXX_USE_CXX11_ABI=0 -Xl -v -Xc -O3 -Xc++ -O3 $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
+	bsc -u -elab -sim $(BSIM_DIRS) $(CORE_DEFINES) $(BSC_OPTS) $(BSC_DONT_WARN) $(BSC_RTS) $(BSC_PATH) $(BSV_TOP)
+	bsc -sim -parallel-sim-link 8 $(BSIM_DIRS) -e mkTop_HW_Side -o $(BSIM_EXE) -Xc++  -D_GLIBCXX_USE_CXX11_ABI=0 -Xl -v -Xc -O3 -Xc++ -O3 $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
