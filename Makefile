@@ -104,17 +104,13 @@ VERILATOR_OBJ = $(INST_DIR)/obj
 ##                                             ##
 #################################################
 
-.PHONY: dummy
-dummy:
-	@echo "$(INST_DIR)"
-
 .PHONY: submodules
 submodules:
 	@if git submodule status | egrep -q '^[-]|^[+]' ; then \
 	    git submodule update --init --recursive; \
 	fi
 
-$(INST_DIR): submodules
+$(INST_DIR):
 	@mkdir -p $(BSV_BUILD) $(BSV_VERILOG) $(BSV_INFO) $(BSV_SIM) $(VERILATOR_OBJ)
 
 .PHONY: clean
@@ -127,11 +123,15 @@ clean:
 ##                                             ##
 #################################################
 
-.PHONY: compile
-compile: $(INST_DIR)
-	bsc -u -elab -sim $(BSC_DIRS) $(CORE_DEFINES) $(BSC_OPTS) $(BSC_DONT_WARN) $(BSC_RTS) $(BSC_PATH) $(BSV_TOP)
+.PHONY: compile-%
+compile-%: submodules $(INST_DIR)
+	bsc -u -elab -$* $(BSC_DIRS) $(CORE_DEFINES) $(BSC_OPTS) $(BSC_DONT_WARN) $(BSC_RTS) $(BSC_PATH) $(BSV_TOP)
 
 .PHONY: bsim
 bsim: $(BSIM_EXE)
-$(BSIM_EXE): compile
+$(BSIM_EXE): compile-sim
 	bsc -sim -parallel-sim-link 8 $(BSC_DIRS) -e mkTop_HW_Side -o $(BSIM_EXE) -Xc++  -D_GLIBCXX_USE_CXX11_ABI=0 -Xl -v -Xc -O3 -Xc++ -O3 $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
+
+.PHONY: verilator
+verilator: $(VSIM_EXE)
+$(VSIM_EXE): compile-verilog
