@@ -96,7 +96,9 @@ BSIM_EXE       = $(INST_DIR)/bsim
 ##                                             ##
 #################################################
 
+VERILATOR_RSC = $(UPSTREAM_SRC)/Verilator
 VERILATOR_OBJ = $(INST_DIR)/obj
+VSIM_EXE      = verilator_sim
 
 #################################################
 ##                                             ##
@@ -135,3 +137,9 @@ $(BSIM_EXE): compile-sim
 .PHONY: verilator
 verilator: $(VSIM_EXE)
 $(VSIM_EXE): compile-verilog
+	sed -f $(VERILATOR_RSC)/sed_script.txt $(BSV_VERILOG)/mkTop_HW_Side.v > tmp.v
+	cat $(VERILATOR_RSC)/verilator_config.vlt $(VERILATOR_RSC)/import_DPI_C_decls.v tmp.v > $(BSV_VERILOG)/mkTop_HW_Side_verilator.v
+	rm -f tmp.v
+	verilator -I$(BSV_VERILOG) -I$(UPSTREAM_SRC)/Lib_Verilog --stats -O3 -CFLAGS -O3 -LDFLAGS -static --x-assign fast --x-initial fast --noassert --cc $(BSV_VERILOG)/mkTop_HW_Side_verilator.v --exe sim_main.cpp $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
+	cp $(UPSTREAM_SRC)/Verilator/sim_main.cpp $(VERILATOR_OBJ)/sim_main.cpp
+	cd $(VERILATOR_OBJ) && make -j -f VmkTop_HW_Side_verilator.mk VmkTop_HW_Side_verilator && cp VmkTop_HW_Side_verilator $(VSIM_EXE)
