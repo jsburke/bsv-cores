@@ -71,12 +71,11 @@ INST_DIR     = $(BUILD_DIR)/$(INSTANCE)
 #################################################
 
 BSV_BUILD     = $(INST_DIR)/build
+BSV_INFO      = $(BSV_BUILD) 
+BSV_SIM       = $(BSV_BUILD) 
 BSV_VERILOG   = $(INST_DIR)/verilog
-BSV_INFO      = $(INST_DIR)/info
-BSV_SIM       = $(INST_DIR)/sim
 
-BSIM_DIRS  = -bdir $(BSV_BUILD) -simdir $(BSV_SIM)     -info-dir $(BSV_INFO)
-VSIM_DIRS  = -bdir $(BSV_BUILD) -vdir   $(BSV_VERILOG) -info-dir $(BSV_INFO)
+BSC_DIRS       = -bdir $(BSV_BUILD) -simdir $(BSV_SIM) -info-dir $(BSV_INFO) -vdir $(BSV_VERILOG)
 
 BSC_OPTS       = -keep-fires -aggressive-conditions -no-warn-action-shadowing -no-show-timestamps -check-assert -show-range-conflict
 BSC_DONT_WARN  = -suppress-warnings G0020
@@ -131,5 +130,5 @@ clean:
 .PHONY: bsim
 bsim: $(BSIM_EXE)
 $(BSIM_EXE): $(INST_DIR)
-	bsc -u -elab -sim $(BSIM_DIRS) $(CORE_DEFINES) $(BSC_OPTS) $(BSC_DONT_WARN) $(BSC_RTS) $(BSC_PATH) $(BSV_TOP)
-	bsc -sim -parallel-sim-link 8 $(BSIM_DIRS) -e mkTop_HW_Side -o $(BSIM_EXE) -Xc++  -D_GLIBCXX_USE_CXX11_ABI=0 -Xl -v -Xc -O3 -Xc++ -O3 $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
+	bsc -u -elab -sim $(BSC_DIRS) $(CORE_DEFINES) $(BSC_OPTS) $(BSC_DONT_WARN) $(BSC_RTS) $(BSC_PATH) $(BSV_TOP)
+	bsc -sim -parallel-sim-link 8 $(BSC_DIRS) -e mkTop_HW_Side -o $(BSIM_EXE) -Xc++  -D_GLIBCXX_USE_CXX11_ABI=0 -Xl -v -Xc -O3 -Xc++ -O3 $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
