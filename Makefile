@@ -127,8 +127,11 @@ clean:
 ##                                             ##
 #################################################
 
+.PHONY: compile
+compile: $(INST_DIR)
+	bsc -u -elab -sim $(BSC_DIRS) $(CORE_DEFINES) $(BSC_OPTS) $(BSC_DONT_WARN) $(BSC_RTS) $(BSC_PATH) $(BSV_TOP)
+
 .PHONY: bsim
 bsim: $(BSIM_EXE)
-$(BSIM_EXE): $(INST_DIR)
-	bsc -u -elab -sim $(BSC_DIRS) $(CORE_DEFINES) $(BSC_OPTS) $(BSC_DONT_WARN) $(BSC_RTS) $(BSC_PATH) $(BSV_TOP)
+$(BSIM_EXE): compile
 	bsc -sim -parallel-sim-link 8 $(BSC_DIRS) -e mkTop_HW_Side -o $(BSIM_EXE) -Xc++  -D_GLIBCXX_USE_CXX11_ABI=0 -Xl -v -Xc -O3 -Xc++ -O3 $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
