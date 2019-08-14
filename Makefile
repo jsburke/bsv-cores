@@ -97,14 +97,20 @@ BSIM_EXE       = $(INST_DIR)/bsim
 #################################################
 
 VERILATOR_RSC = $(UPSTREAM_SRC)/Verilator
-VERILATOR_OBJ = $(INST_DIR)/obj
-VSIM_EXE      = verilator_sim
+VERILATOR_OBJ = $(INST_DIR)/obj_dir
+VSIM_EXE      = $(INST_DIR)/verilator_sim
 
 #################################################
 ##                                             ##
 ##  Utility Targets                            ##
 ##                                             ##
 #################################################
+
+.PHONY: default
+default: all
+
+.PHONY: all
+all: sims
 
 .PHONY: submodules
 submodules:
@@ -138,8 +144,14 @@ $(BSIM_EXE): compile-sim
 verilator: $(VSIM_EXE)
 $(VSIM_EXE): compile-verilog
 	sed -f $(VERILATOR_RSC)/sed_script.txt $(BSV_VERILOG)/mkTop_HW_Side.v > tmp.v
-	cat $(VERILATOR_RSC)/verilator_config.vlt $(VERILATOR_RSC)/import_DPI_C_decls.v tmp.v > $(BSV_VERILOG)/mkTop_HW_Side_verilator.v
+	cat $(VERILATOR_RSC)/verilator_config.vlt $(VERILATOR_RSC)/import_DPI_C_decls.v tmp.v > $(BSV_VERILOG)/mkTop_HW_Side_edited.v
 	rm -f tmp.v
-	verilator -I$(BSV_VERILOG) -I$(UPSTREAM_SRC)/Lib_Verilog --stats -O3 -CFLAGS -O3 -LDFLAGS -static --x-assign fast --x-initial fast --noassert --cc $(BSV_VERILOG)/mkTop_HW_Side_verilator.v --exe sim_main.cpp $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
+	cd $(INST_DIR) && verilator -I$(BSV_VERILOG) -I$(UPSTREAM_SRC)/Lib_Verilog --stats -O3 -CFLAGS -O3 -LDFLAGS -static --x-assign fast --x-initial fast --noassert --cc $(BSV_VERILOG)/mkTop_HW_Side_edited.v --exe sim_main.cpp $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
 	cp $(UPSTREAM_SRC)/Verilator/sim_main.cpp $(VERILATOR_OBJ)/sim_main.cpp
-	cd $(VERILATOR_OBJ) && make -j -f VmkTop_HW_Side_verilator.mk VmkTop_HW_Side_verilator && cp VmkTop_HW_Side_verilator $(VSIM_EXE)
+	cd $(VERILATOR_OBJ) && make -j -f VmkTop_HW_Side_edited.mk VmkTop_HW_Side_edited && cp VmkTop_HW_Side_edited $(VSIM_EXE)
+
+.PHONY: sims
+sims: bsim verilator
+
+.PHONY: rebuild
+rebuild: clean all
