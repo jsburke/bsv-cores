@@ -60,7 +60,6 @@ UPSTREAM_SRC = $(UPSTREAM)/src
 FLUTE_DIR    = $(UPSTREAM_SRC)/Flute
 PICCOLO_DIR  = $(UPSTREAM_SRC)/Piccolo
 
-
 BUILD_DIR    = $(HERE)/build
 INST_DIR     = $(BUILD_DIR)/$(INSTANCE)
 
@@ -125,6 +124,41 @@ $(INST_DIR):
 clean:
 	@rm -rf $(BUILD_DIR)
 
+.PHONY: help
+help:
+	@echo "bsv-cores Makefile usage"
+	@echo " "
+	@echo " ***** Targets *****"
+	@echo " "
+	@echo "  all (default) -- compile a bluesim simulator for the defined arch"
+	@echo " "
+	@echo "  bsim ----------- compile a bluesim simulator for the defined arch"
+	@echo " "
+	@echo "  verilator ------ compile a verilator simulator for the defined arch"
+	@echo " "
+	@echo "  sims ----------- build all sims for defined arch (same as all now)"
+	@echo " "
+	@echo "  clean ---------- delete dirs with generated code or binaries"
+	@echo " "
+	@echo "  rebuild -------- alias for clean then all"
+	@echo " "
+	@echo "  help ----------- print this message"
+	@echo " "
+	@echo " ***** Knobs *****"
+	@echo "  "
+	@echo "  Many variables can be used to alter the result."
+	@echo "  Most will be absorbed into a build script at some point"
+	@echo "  Look into the guts of the make file for potentially easier control"
+	@echo " "
+	@echo "  XLEN -- 32 or 64 for bitness"
+	@echo " "
+	@echo "  CORE -- Piccolo or Flute"
+	@echo " "
+	@echo "  EXT  -- List of ISA extensions in the fashion of -D ISA_I -D ISA_M"
+	@echo " "
+	@echo "  PRIV -- List of priv levels to be included like -D ISA_PRIV_M -D ISA_PRIV_U"
+	@echo " "
+	@echo " And many others, look into the codebase and makefile"
 #################################################
 ##                                             ##
 ##  Compile and Sim Targets                    ##
