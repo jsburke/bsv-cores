@@ -26,5 +26,38 @@
 #  -b --build   <conf_name>          Build the proc specified by the file in
 #                                    the conf dir
 
-
 import os, sys, argparse
+
+#############################
+##                         ##
+## Command Line            ##
+##                         ##
+#############################
+
+class parser_with_error(argparse.ArgumentParser):
+  def error(self, msg = ""):
+    if(msg): print("ERROR: %s" % msg)
+    source = open(sys.argv[0]) # open the source for this script
+    for(line_num, line) in enumerate(source):
+      if(line[0] != "#"): sys.exit(msg != "")
+      if(line_num > 1):   print(line[1:].rstrip("\n"))
+
+def parse():
+  parser = parser_with_error(add_help = False)
+
+  # basic use args
+
+  parser.add_argument("-h", "--help", action = "store_true")
+
+  verbosity = parser.add_mutually_exclusive_group()
+
+  verbosity.add_argument("-v", "--verbose", action = "store_true")
+  verbosity.add_argument("-q", "--quiet", action = "store_true")
+
+  # new or old conf
+
+  mode = parser.add_mutually_exclusive_group()
+
+  mode.add_agrument("-n", "--new", action = "store_true")
+  mode.add_agrument("-b", "--build", action = "store_true")
+
