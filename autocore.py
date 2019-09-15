@@ -118,5 +118,7 @@ def conf_make(filename)
 def main():
   options = parse()
 
+  if options.new:
+    new_conf_build(options)
 
 main()
