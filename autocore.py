@@ -96,6 +96,9 @@ def parse():
 ##                         ##
 #############################
 
+def conf_filename_make(conf_str)
+  return conf_str + ".conf" 
+
 def riscv_string_parse(rv_str):
   bitness    = int(rv_str[2:4])
   extensions = rv_str[4:].replace("g","imafd")
@@ -105,9 +108,9 @@ def riscv_priv_parse(rv_priv_str):
   priv_list = list(rv_priv_str)
   return False
 
-def new_conf_build(options)
+def new_conf_build(options):
 
-def conf_make(filename)
+def conf_make(filename):
 
 #############################
 ##                         ##
@@ -120,5 +123,9 @@ def main():
 
   if options.new:
     new_conf_build(options)
+
+  if options.build:
+    build_conf = conf_filename_make(options.build)
+    conf_make(build_conf)
 
 main()
