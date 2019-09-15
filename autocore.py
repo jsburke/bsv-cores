@@ -104,6 +104,11 @@ def riscv_string_parse(rv_str):
 def riscv_priv_parse(rv_priv_str):
   priv_list = list(rv_priv_str)
   return False
+
+def new_conf_build(options)
+
+def conf_make(filename)
+
 #############################
 ##                         ##
 ## Main Script             ##
@@ -113,8 +118,5 @@ def riscv_priv_parse(rv_priv_str):
 def main():
   options = parse()
 
-  [xlen, ext] = riscv_string_parse(options.arch.lower())
-
-  
 
 main()
