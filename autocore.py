@@ -4,11 +4,13 @@
 #  -h --help                         Print this message
 #
 #  -v --verbose
-#  -q --quiet
+#  -q --quiet                        (default)
 #
-#     Making a new configuration
+#     Making and building configurations
 #
 #  -n --new     <conf_name>          Tells tool to make a new conf
+#  -f --fast    <conf_name>          Combines both --new and --build in one step
+#
 #     --core    <core_str>           Which core to use (Piccolo, Flute) 
 #     --arch    <arch_str>           Basic risc-v string, ex: 'rv32imac'
 #     --priv    <priv_str>           Priv levels to use,  ex: 'mu'
@@ -31,6 +33,7 @@ import os, sys, argparse
 # allowed choices for certain descriptors
 
 cores       = ["Piccolo", "Flute"]
+privs       = ["m", "mu", "msu"]
 fabrics     = [32, 64]
 multipliers = ["serial", "synth"]
 shifters    = ["serial", "barrel", "mult"]
@@ -54,25 +57,26 @@ def parse():
 
   # basic use args
 
-  parser.add_argument("-h", "--help", action = "store_true")
-
-  verbosity = parser.add_mutually_exclusive_group()
-
-  verbosity.add_argument("-v", "--verbose", action = "store_true")
-  verbosity.add_argument("-q", "--quiet", action = "store_true")
-
-  # new or old conf
-
   mode = parser.add_mutually_exclusive_group(required = True)
 
   mode.add_argument("-n", "--new",   type = str)
   mode.add_argument("-b", "--build", type = str)
+  mode.add_argument("-f", "--fast",  type = str)
+  mode.add_argument("-h", "--help", action = "store_true") # put help here to avoid dumb errors
+
+  # verbosity
+
+  prog_verbose = parser.add_mutually_exclusive_group()
+
+  prog_verbose.add_argument("-v", "--verbose", action = "store_const", dest = "verbosity", const = "v")
+  prog_verbose.add_argument("-q", "--quiet", action = "store_const", dest = "verbosity", const = "q")
+  parser.set_defaults(verbosity = "q")
 
   # sub args for --new
 
   parser.add_argument("--core", choices = cores, type = str)
   parser.add_argument("--arch", type = str)
-  parser.add_argument("--priv", type = str)
+  parser.add_argument("--priv", choices = privs, type = str)
   parser.add_argument("--fabric", choices = fabrics, type = int)
   parser.add_argument("--tv", action = "store_true")
   parser.add_argument("--db", action = "store_true")
@@ -96,21 +100,36 @@ def parse():
 ##                         ##
 #############################
 
-def conf_filename_make(conf_str)
-  return conf_str + ".conf" 
+def rv_arch_parse(rv_str):
+  xlen = rv_str[:4]
+  ext  = rv_str[5:].replace("g","imafd")
 
-def riscv_string_parse(rv_str):
-  bitness    = int(rv_str[2:4])
-  extensions = rv_str[4:].replace("g","imafd")
-  return [bitness, extensions]
+  if not("i" in ext):
+    print("ERROR: RV I extension is mandatory\n")
+    sys.exit()
 
-def riscv_priv_parse(rv_priv_str):
-  priv_list = list(rv_priv_str)
-  return False
+  if (("d" in ext) and not("f" in ext)):
+    print("ERROR: RV D requires RV F\n")
+    sys.exit()
+
+  return [xlen, ext]
 
 def new_conf_build(options):
+  core        = options.core
+  [xlen, ext] = rv_arch_parse(options.arch.lower())
+  privs       = options.priv
+  fabric      = options.fabric
+  tv          = "on" if options.tv else "off"
+  db          = "on" if options.db else "off"
+  mem_zero    = "on" if options.mem_zero else "off"
+  multiply    = options.mult
+  shifter     = options.shift
+
+def conf_filename_make(conf_str):
+  return conf_str + ".conf" 
 
 def conf_make(filename):
+  return False
 
 #############################
 ##                         ##
@@ -121,10 +140,12 @@ def conf_make(filename):
 def main():
   options = parse()
 
-  if options.new:
+  print(options)
+
+  if (options.new or options.fast):
     new_conf_build(options)
 
-  if options.build:
+  if (options.build or options.fast):
     build_conf = conf_filename_make(options.build)
     conf_make(build_conf)
 
