@@ -80,12 +80,12 @@ def parse():
   parser.add_argument("--fabric", choices = fabrics, type = int)
   parser.add_argument("--tv", action = "store_true")
   parser.add_argument("--db", action = "store_true")
-  parser.add_argument("--init-mem-zero", action = "store_true")
+  parser.add_argument("--init-mem-zero", action = "store_true", dest = "mem_zero")
   parser.add_argument("--mult", choices = multipliers, type = str)
   parser.add_argument("--shift", choices = shifters, type = str)
 
   options     = parser.parse_args()
-  descriptors = [options.core, options.arch, options.priv, options.fabric, options.tv, options.db, options.init_mem_zero, options.mult, options.shift]
+  descriptors = [options.core, options.arch, options.priv, options.fabric, options.tv, options.db, options.mem_zero, options.mult, options.shift]
 
   if options.help:
     parser.error()
@@ -102,7 +102,7 @@ def parse():
 
 def rv_arch_parse(rv_str):
   xlen = rv_str[:4]
-  ext  = rv_str[5:].replace("g","imafd")
+  ext  = rv_str[4:].replace("g","imafd")
 
   if not("i" in ext):
     print("ERROR: RV I extension is mandatory\n")
@@ -114,13 +114,13 @@ def rv_arch_parse(rv_str):
 
   return [xlen, ext]
 
-def new_conf_build(options):
+def new_conf_build(options, conf_name):
   core        = options.core
   [xlen, ext] = rv_arch_parse(options.arch.lower())
   privs       = options.priv
   fabric      = options.fabric
-  tv          = "on" if options.tv else "off"
-  db          = "on" if options.db else "off"
+  tv          = "on" if options.tv       else "off"
+  db          = "on" if options.db       else "off"
   mem_zero    = "on" if options.mem_zero else "off"
   multiply    = options.mult
   shifter     = options.shift
@@ -140,13 +140,19 @@ def conf_make(filename):
 def main():
   options = parse()
 
-  print(options)
+  conf_name = next(fn for fn in [options.new, options.build, options.fast] if fn is not None)
 
   if (options.new or options.fast):
-    new_conf_build(options)
+    new_conf_build(options, conf_name)
 
   if (options.build or options.fast):
-    build_conf = conf_filename_make(options.build)
+    build_conf = conf_filename_make(conf_name)
     conf_make(build_conf)
+
+#############################
+##                         ##
+## Go Button               ##
+##                         ##
+#############################
 
 main()
