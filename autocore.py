@@ -93,8 +93,6 @@ def parse():
 
   if options.help:
     parser.error()
-  if (options.build and any(descriptors)):
-    parser.error(msg = "Cannot use --build with core description options")
   else:
     return options
 
@@ -166,7 +164,7 @@ def conf_filename_make(path, conf_str):
   return conf_file
 
 def conf_make(filename):
-  return False
+  fp = open(filename, "r")
 
 #############################
 ##                         ##
@@ -183,7 +181,7 @@ def main():
     new_conf_build(options, here, conf_name)
 
   if (options.build or options.fast):
-    build_conf = conf_filename_make(conf_name)
+    build_conf = conf_filename_make(here, conf_name)
     conf_make(build_conf)
 
 #############################
