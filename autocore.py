@@ -145,16 +145,16 @@ def new_conf_build(options, path, conf_name):
 
   fp = open(new_conf, "w+")
 
-  fp.write("core - %s\n"   % core)
-  fp.write("arch - %s\n"   % xlen)
-  fp.write("ext - %s\n"    % ext)
-  fp.write("priv - %s\n"   % privs)
-  fp.write("fabric - %d\n" % fabric)
-  fp.write("mult - %s\n"   % multiply)
-  fp.write("shift - %s\n"  % shifter)
-  fp.write("tv - %s\n"     % tv)
-  fp.write("db - %s\n"     % db)
-  fp.write("mem_zero - %s" % mem_zero)
+  fp.write("core:%s\n"   % core)
+  fp.write("arch:%s\n"   % xlen)
+  fp.write("ext:%s\n"    % ext)
+  fp.write("priv:%s\n"   % privs)
+  fp.write("fabric:%d\n" % fabric)
+  fp.write("mult:%s\n"   % multiply)
+  fp.write("shift:%s\n"  % shifter)
+  fp.write("tv:%s\n"     % tv)
+  fp.write("db:%s\n"     % db)
+  fp.write("mem_zero:%s" % mem_zero)
 
   fp.close()
 
