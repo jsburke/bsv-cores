@@ -14,14 +14,14 @@
 #     --core    <core_str>           Which core to use (Piccolo, Flute) 
 #     --arch    <arch_str>           Basic risc-v string, ex: 'rv32imac'
 #     --priv    <priv_str>           Priv levels to use,  ex: 'mu'
-#     --fabric  [32|64]              Fabric definition
-#     --tv                           Enable tandem verif
-#     --db                           Enable debug module
+#     --fabric  [32|64]              Fabric definition (default 64)
+#     --tv                           Enable tandem verif (default off)
+#     --db                           Enable debug module (default off)
 #     --mult    [serial|synth]       Multiplier choice, requires M extension
 #                                    synth is default
 #     --shift   [serial|barrel|mult] Shifter Choice, mult requires M
 #                                    default barrel
-#     --init-mem-zero                Initial memory zero option
+#     --init-mem-zero                Initial memory zero option (default off)
 #
 #     Using an existing conf
 #
@@ -29,6 +29,8 @@
 #                                    the conf dir
 
 import os, sys, argparse
+
+here =  os.path.abspath(os.path.dirname(sys.argv[0]))
 
 # allowed choices for certain descriptors
 
@@ -83,6 +85,8 @@ def parse():
   parser.add_argument("--init-mem-zero", action = "store_true", dest = "mem_zero")
   parser.add_argument("--mult", choices = multipliers, type = str)
   parser.add_argument("--shift", choices = shifters, type = str)
+  parser.set_defaults(mult  = "synth")
+  parser.set_defaults(shift = "barrel")
 
   options     = parser.parse_args()
   descriptors = [options.core, options.arch, options.priv, options.fabric, options.tv, options.db, options.mem_zero, options.mult, options.shift]
@@ -112,21 +116,54 @@ def rv_arch_parse(rv_str):
     print("ERROR: RV D requires RV F\n")
     sys.exit()
 
+  if not((xlen == "rv32") or (xlen == "rv64")):
+    print("ERROR: arch must be rv32 or rv64\n")
+    sys.exit()
+
   return [xlen, ext]
 
-def new_conf_build(options, conf_name):
+def new_conf_build(options, path, conf_name):
   core        = options.core
   [xlen, ext] = rv_arch_parse(options.arch.lower())
   privs       = options.priv
-  fabric      = options.fabric
+  fabric      = 64 if not options.fabric else options.fabric
   tv          = "on" if options.tv       else "off"
   db          = "on" if options.db       else "off"
   mem_zero    = "on" if options.mem_zero else "off"
   multiply    = options.mult
   shifter     = options.shift
 
-def conf_filename_make(conf_str):
-  return conf_str + ".conf" 
+  if not core:
+    print("Error: a core must be specified with --core")
+    sys.exit()
+
+  if not privs:
+    print("Error: a privilidge scheme must be defined with --priv")
+    sys.exit()
+
+  new_conf = conf_filename_make(path, conf_name)
+
+  fp = open(new_conf, "w+")
+
+  fp.write("core - %s\n"   % core)
+  fp.write("arch - %s\n"   % xlen)
+  fp.write("ext - %s\n"    % ext)
+  fp.write("priv - %s\n"   % privs)
+  fp.write("fabric - %d\n" % fabric)
+  fp.write("mult - %s\n"   % multiply)
+  fp.write("shift - %s\n"  % shifter)
+  fp.write("tv - %s\n"     % tv)
+  fp.write("db - %s\n"     % db)
+  fp.write("mem_zero - %s" % mem_zero)
+
+  fp.close()
+
+def conf_filename_make(path, conf_str):
+  if conf_str.endswith(".conf"):
+    conf_file = path + "/conf/" + conf_str
+  else:
+    conf_file = path + "/conf/" + conf_str + ".conf"
+  return conf_file
 
 def conf_make(filename):
   return False
@@ -143,7 +180,7 @@ def main():
   conf_name = next(fn for fn in [options.new, options.build, options.fast] if fn is not None)
 
   if (options.new or options.fast):
-    new_conf_build(options, conf_name)
+    new_conf_build(options, here, conf_name)
 
   if (options.build or options.fast):
     build_conf = conf_filename_make(conf_name)
