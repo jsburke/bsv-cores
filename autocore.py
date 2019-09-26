@@ -164,7 +164,12 @@ def conf_filename_make(path, conf_str):
   return conf_file
 
 def conf_make(filename):
-  fp = open(filename, "r")
+  make_command = "make all "
+
+  with open(filename, "r") as conf:
+    lines = []
+    for line in conf:
+      lines.append(line)
 
 #############################
 ##                         ##
