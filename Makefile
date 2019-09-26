@@ -86,7 +86,7 @@ FABRICS_DIR  = $(UPSTREAM_SRC)/Fabrics/
 BSC_FABRICS    = $(subst $(SPACE),:,$(addprefix $(FABRICS_DIR),$(filter-out README_Fabrics.txt,$(patsubst $(FABRICS_DIR)%,%,$(wildcard $(FABRICS_DIR)*/)))))
 
 BSC_PATH       = -p $(UPSTREAM_SRC)/CPU/Common:$(UPSTREAM_SRC)/CPU/$(CORE):$(BSC_NON_CPU):$(BSC_FABRICS):+
-BSV_TOP        = $(UPSTREAM_SRC)/Top/Top_HW_Side.bsv
+BSV_TOP       ?= $(UPSTREAM_SRC)/Top/Top_HW_Side.bsv
 BSIM_EXE       = $(INST_DIR)/bsim 
 
 #################################################
