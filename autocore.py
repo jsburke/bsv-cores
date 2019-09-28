@@ -166,6 +166,8 @@ def conf_filename_make(path, conf_str):
 def conf_make(filename):
   make_command = "make all "
 
+  instance = os.path.basename(filename).split(".")[0]
+
   with open(filename, "r") as conf:
     lines = []
     for line in conf:
