@@ -164,14 +164,20 @@ def conf_filename_make(path, conf_str):
   return conf_file
 
 def conf_make(filename):
-  make_command = "make all "
-
   instance = os.path.basename(filename).split(".")[0]
 
+  make_command = 'make all INSTANCE="' + instance + '" '
+
   with open(filename, "r") as conf:
-    lines = []
     for line in conf:
-      lines.append(line)
+      make_append = conf_line_parse(line)
+      if (make_append == "error"):
+        print("Error: some line in %.conf is bad\n" % instance)
+        sys.exit()
+      else:
+        make_command += make_append
+
+  ## issue make command via sys or something
 
 #############################
 ##                         ##
