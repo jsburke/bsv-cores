@@ -163,6 +163,16 @@ def conf_filename_make(path, conf_str):
     conf_file = path + "/conf/" + conf_str + ".conf"
   return conf_file
 
+def conf_line_parse(line):
+  [key, value] = line.rstrip().split(":")
+
+  if key is "ext":
+    return ""
+  elif key is "priv":
+    return ""
+  else:
+    return key.upper() + "=" + value
+
 def conf_make(filename):
   instance = os.path.basename(filename).split(".")[0]
 
@@ -171,11 +181,13 @@ def conf_make(filename):
   with open(filename, "r") as conf:
     for line in conf:
       make_append = conf_line_parse(line)
-      if (make_append == "error"):
-        print("Error: some line in %.conf is bad\n" % instance)
-        sys.exit()
-      else:
-        make_command += make_append
+      print("%s\n" % make_append)
+
+      #if (make_append == "error"):
+      #  print("Error: some line in %.conf is bad\n" % instance)
+      #  sys.exit()
+      #else:
+      #  make_command += make_append
 
   ## issue make command via sys or something
 
