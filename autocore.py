@@ -165,13 +165,28 @@ def conf_filename_make(path, conf_str):
 
 def conf_line_parse(line):
   [key, value] = line.rstrip().split(":")
+  make_line = " "
 
   if key is "ext":
-    return ""
+    make_line += "EXT = "
+    for letter in value:
+      if letter not in "imafdc":
+        print("Error: %s not a valid extension, should be from imafdc\n" % letter)
+        sys.exit()
+      else:
+        make_line += " -D ISA_" + letter.upper()
   elif key is "priv":
-    return ""
-  else:
-    return key.upper() + "=" + value
+    make_line += "PRIV = "
+    for letter in value:
+      if letter not in "msu":
+        print("Error: %s not a valid priv, should be from msu\n" % letter)
+        sys.exit()
+      else:
+        make_line += "-D ISA_PRIV_" + letter.upper()
+  elif key is "fabric":
+    if (value is "32") or (value is 64):
+       
+
 
 def conf_make(filename):
   instance = os.path.basename(filename).split(".")[0]
