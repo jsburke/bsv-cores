@@ -14,12 +14,10 @@ SPACE +=
 ##                                             ##
 #################################################
 
-XLEN       ?= 64
-
   # which core I want to build simulations or
   # verilog of.  May be mixed due to above
 CORE       ?= Flute
-ARCH        = -D RV$(XLEN)
+ARCH       ?= -D RV64
 FABRIC     ?= -D FABRIC64
 
   # default ISA extensions
@@ -150,7 +148,7 @@ help:
 	@echo "  Most will be absorbed into a build script at some point"
 	@echo "  Look into the guts of the make file for potentially easier control"
 	@echo " "
-	@echo "  XLEN -- 32 or 64 for bitness"
+	@echo "  ARCH -- RV32 or RV64 for bitness"
 	@echo " "
 	@echo "  CORE -- Piccolo or Flute"
 	@echo " "
