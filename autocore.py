@@ -185,8 +185,17 @@ def conf_line_parse(line):
         make_line += "-D ISA_PRIV_" + letter.upper()
   elif key is "fabric":
     if (value is "32") or (value is 64):
-       
-
+      make_line += "FABRIC = -D FABRIC" + value
+    else:
+        print("Error: %s not a valid fabric size, should be 32 or 64\n" % letter)
+        sys.exit()
+  elif key is "arch":
+    if (value is "rv32") or (value is "rv64"):
+      make_line += "ARCH = " + value.upper()
+    else:
+        print("Error: %s not a valid architecture, should be rv32 or rv64\n" % letter)
+        sys.exit()
+      
 
 def conf_make(filename):
   instance = os.path.basename(filename).split(".")[0]
