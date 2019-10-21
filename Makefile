@@ -40,6 +40,23 @@ ifeq ($(PRIV),)
   PRIV += -D ISA_PRIV_U
 endif
 
+ifneq (,$(findstring ISA_M,$(EXT))) # weird Make logic: if "ISA_M" in EXT, empty does not match
+  MUL ?= -D MULT_SYNTH
+  #MUL ?= -D MULT_SERIAL
+endif
+
+  # Shift Options
+  #
+  # Barrel Shifter -- default
+  # Serial Shifter -- slow, small HW utilization
+  # Mult   Shifter -- lverages DSPs
+  #
+  # Can also disable all shift options and shifts trap as illegal insn
+
+SHIFT ?= -D SHIFT_BARREL
+# SHIFT ?= -D SHIFT_SERIAL
+# SHIFT ?= -D SHIFT_MULT 
+
 NEAR_MEM ?= -D Near_Mem_Caches
 # NEAR_MEM ?= -D Near_Mem_TCM
 
