@@ -167,7 +167,7 @@ def conf_line_parse(line):
   [key, value] = line.rstrip().split(":")
   make_line = " "
 
-  if key is "ext":
+  if key == "ext":
     make_line += "EXT = "
     for letter in value:
       if letter not in "imafdc":
@@ -175,73 +175,73 @@ def conf_line_parse(line):
         sys.exit()
       else:
         make_line += " -D ISA_" + letter.upper()
-  elif key is "priv":
+  elif key == "priv":
     make_line += "PRIV = "
     for letter in value:
       if letter not in "msu":
         print("Error: %s not a valid priv, should be from msu\n" % letter)
         sys.exit()
       else:
-        make_line += "-D ISA_PRIV_" + letter.upper()
-  elif key is "fabric":
+        make_line += " -D ISA_PRIV_" + letter.upper()
+  elif key == "fabric":
     if (value is "32") or (value is 64):
       make_line += "FABRIC = -D FABRIC" + value
     else:
       print("Error: %s not a valid fabric size, should be 32 or 64\n" % letter)
       sys.exit()
-  elif key is "arch":
-    if (value is "rv32") or (value is "rv64"):
+  elif key == "arch":
+    if value in ["rv32", "rv64"]:
       make_line += "ARCH = -D " + value.upper()
     else:
-      print("Error: %s not a valid architecture, should be rv32 or rv64\n" % letter)
+      print("Error: %s not a valid architecture, should be rv32 or rv64\n" % value)
       sys.exit()
-  elif key is "core":
+  elif key == "core":
     if value not in cores:
-      print("Error: %s not a valid core, should be Piccolo or Flute\n" % letter)
+      print("Error: %s not a valid core, should be Piccolo or Flute\n" % value)
       sys.exit()
     else:
       make_line += "CORE = -D " + value
-  elif key is "mult":
+  elif key == "mult":
     if value not in multipliers: 
-      print("Error: %s not a valid multiplier, should be synth or serial\n" % letter)
+      print("Error: %s not a valid multiplier, should be synth or serial\n" % value)
       sys.exit()
     else:
       make_line += "MUL = -D " + value.upper()
-  elif key is "shift":
+  elif key == "shift":
     if value not in shifters: 
-      print("Error: %s not a valid multiplier, should be synth ,serial, or barrel\n" % letter)
+      print("Error: %s not a valid multiplier, should be synth ,serial, or barrel\n" % value)
       sys.exit()
     else:
       make_line += "SHIFT = -D " + value.upper()
-  elif key is "near_mem":
+  elif key == "near_mem":
     if value not in near_mem:
-      print("Error: %s not a valid near mem, should be caches or tcm\n" % letter)
+      print("Error: %s not a valid near mem, should be caches or tcm\n" % value)
       sys.exit()
     else:
       make_line += "NEAR_MEM = -D Near_Mem_" + value
-  elif key is "tv":
+  elif key == "tv":
     if not ((value is "on") or (value is "off")):
-      print("Error: %s not valid for tandem verif, should be on or off\n" % letter)
+      print("Error: %s not valid for tandem verif, should be on or off\n" % value)
       sys.exit()
     else:
       prefix = "INCLUDE" if value is "on" else "EXCLUDE"
       make_line += "TV = -D " + prefix + "_TANDEM_VERIF"
-  elif key is "db":
+  elif key == "db":
     if not ((value is "on") or (value is "off")):
-      print("Error: %s not valid for debug, should be on or off\n" % letter)
+      print("Error: %s not valid for debug, should be on or off\n" % value)
       sys.exit()
     else:
       prefix = "INCLUDE" if value is "on" else "EXCLUDE"
       make_line += "DEBUG = -D " + prefix + "_GDB_CONTROL"
-  elif key is "mem_zero":
+  elif key == "mem_zero":
     if not ((value is "on") or (value is "off")):
-      print("Error: %s not valid for initializing memory, should be on or off\n" % letter)
+      print("Error: %s not valid for initializing memory, should be on or off\n" % value)
       sys.exit()
     else:
       prefix = "INCLUDE" if value is "on" else "EXCLUDE"
       make_line += "TV = -D " + prefix + "_INITIAL_MEMZERO"
   else:
-    print("Error: key %s not recognized\n" % key)
+    print("Error: key %s not recognized" % key)
     sys.exit()
 
   return make_line
