@@ -187,32 +187,64 @@ def conf_line_parse(line):
     if (value is "32") or (value is 64):
       make_line += "FABRIC = -D FABRIC" + value
     else:
-        print("Error: %s not a valid fabric size, should be 32 or 64\n" % letter)
-        sys.exit()
+      print("Error: %s not a valid fabric size, should be 32 or 64\n" % letter)
+      sys.exit()
   elif key is "arch":
     if (value is "rv32") or (value is "rv64"):
-      make_line += "ARCH = " + value.upper()
+      make_line += "ARCH = -D " + value.upper()
     else:
-        print("Error: %s not a valid architecture, should be rv32 or rv64\n" % letter)
-        sys.exit()
+      print("Error: %s not a valid architecture, should be rv32 or rv64\n" % letter)
+      sys.exit()
   elif key is "core":
     if value not in cores:
-        print("Error: %s not a valid core, should be Piccolo or Flute\n" % letter)
-        sys.exit()
+      print("Error: %s not a valid core, should be Piccolo or Flute\n" % letter)
+      sys.exit()
     else:
-      make_line += "CORE = " + value
+      make_line += "CORE = -D " + value
   elif key is "mult":
     if value not in multipliers: 
-        print("Error: %s not a valid multiplier, should be synth or serial\n" % letter)
-        sys.exit()
+      print("Error: %s not a valid multiplier, should be synth or serial\n" % letter)
+      sys.exit()
     else:
-      make_line += "MULT = " + value.upper()
+      make_line += "MUL = -D " + value.upper()
   elif key is "shift":
     if value not in shifters: 
-        print("Error: %s not a valid multiplier, should be synth ,serial, or barrel\n" % letter)
-        sys.exit()
+      print("Error: %s not a valid multiplier, should be synth ,serial, or barrel\n" % letter)
+      sys.exit()
     else:
-      make_line += "SHIFT = " + value.upper()
+      make_line += "SHIFT = -D " + value.upper()
+  elif key is "near_mem":
+    if value not in near_mem:
+      print("Error: %s not a valid near mem, should be caches or tcm\n" % letter)
+      sys.exit()
+    else:
+      make_line += "NEAR_MEM = -D Near_Mem_" + value
+  elif key is "tv":
+    if not ((value is "on") or (value is "off")):
+      print("Error: %s not valid for tandem verif, should be on or off\n" % letter)
+      sys.exit()
+    else:
+      prefix = "INCLUDE" if value is "on" else "EXCLUDE"
+      make_line += "TV = -D " + prefix + "_TANDEM_VERIF"
+  elif key is "db":
+    if not ((value is "on") or (value is "off")):
+      print("Error: %s not valid for debug, should be on or off\n" % letter)
+      sys.exit()
+    else:
+      prefix = "INCLUDE" if value is "on" else "EXCLUDE"
+      make_line += "DEBUG = -D " + prefix + "_GDB_CONTROL"
+  elif key is "mem_zero":
+    if not ((value is "on") or (value is "off")):
+      print("Error: %s not valid for initializing memory, should be on or off\n" % letter)
+      sys.exit()
+    else:
+      prefix = "INCLUDE" if value is "on" else "EXCLUDE"
+      make_line += "TV = -D " + prefix + "_INITIAL_MEMZERO"
+  else:
+    print("Error: key %s not recognized\n" % key)
+    sys.exit()
+
+  return make_line
 
 def conf_make(filename):
   instance = os.path.basename(filename).split(".")[0]
