@@ -8,25 +8,26 @@
 #
 #     Making and building configurations
 #
-#  -n --new     <conf_name>          Tells tool to make a new conf
-#  -f --fast    <conf_name>          Combines both --new and --build in one step
+#  -n --new      <conf_name>          Tells tool to make a new conf
+#  -f --fast     <conf_name>          Combines both --new and --build in one step
 #
-#     --core    <core_str>           Which core to use (Piccolo, Flute) 
-#     --arch    <arch_str>           Basic risc-v string, ex: 'rv32imac'
-#     --priv    <priv_str>           Priv levels to use,  ex: 'mu'
-#     --fabric  [32|64]              Fabric definition (default 64)
-#     --tv                           Enable tandem verif (default off)
-#     --db                           Enable debug module (default off)
-#     --mult    [serial|synth]       Multiplier choice, requires M extension
-#                                    synth is default
-#     --shift   [serial|barrel|mult] Shifter Choice, mult requires M
-#                                    default barrel
-#     --init-mem-zero                Initial memory zero option (default off)
+#     --core     <core_str>           Which core to use (Piccolo, Flute) 
+#     --arch     <arch_str>           Basic risc-v string, ex: 'rv32imac'
+#     --priv     <priv_str>           Priv levels to use,  ex: 'mu'
+#     --fabric   [32|64]              Fabric definition (default 64)
+#     --near_mem [Caches|TCM]         Near Mem as Caches or Tightly coupled memory
+#     --tv                            Enable tandem verif (default off)
+#     --db                            Enable debug module (default off)
+#     --mult     [serial|synth]       Multiplier choice, requires M extension
+#                                     synth is default
+#     --shift    [serial|barrel|mult] Shifter Choice, mult requires M
+#                                     default barrel
+#     --init-mem-zero                 Initial memory zero option (default off)
 #
 #     Using an existing conf
 #
-#  -b --build   <conf_name>          Build the proc specified by the file in
-#                                    the conf dir
+#  -b --build   <conf_name>           Build the proc specified by the file in
+#                                     the conf dir
 
 import os, sys, argparse
 
@@ -39,6 +40,7 @@ privs       = ["m", "mu", "msu"]
 fabrics     = [32, 64]
 multipliers = ["serial", "synth"]
 shifters    = ["serial", "barrel", "mult"]
+near_mems   = ["Caches", "TCM"]
 
 #############################
 ##                         ##
@@ -85,8 +87,10 @@ def parse():
   parser.add_argument("--init-mem-zero", action = "store_true", dest = "mem_zero")
   parser.add_argument("--mult", choices = multipliers, type = str)
   parser.add_argument("--shift", choices = shifters, type = str)
+  parser.add_argument("--near_mem", choices = near_mems, type = str)
   parser.set_defaults(mult  = "synth")
   parser.set_defaults(shift = "barrel")
+  parser.set_defaults(near_mem = "Caches")
 
   options     = parser.parse_args()
   descriptors = [options.core, options.arch, options.priv, options.fabric, options.tv, options.db, options.mem_zero, options.mult, options.shift]
@@ -130,6 +134,7 @@ def new_conf_build(options, path, conf_name):
   mem_zero    = "on" if options.mem_zero else "off"
   multiply    = options.mult
   shifter     = options.shift
+  near_mem    = options.near_mem
 
   if not core:
     print("Error: a core must be specified with --core")
@@ -184,10 +189,10 @@ def conf_line_parse(line):
       else:
         make_line += " -D ISA_PRIV_" + letter.upper()
   elif key == "fabric":
-    if (value is "32") or (value is 64):
+    if value in ["32", "64"]:
       make_line += "FABRIC = -D FABRIC" + value
     else:
-      print("Error: %s not a valid fabric size, should be 32 or 64\n" % letter)
+      print("Error: %s not a valid fabric size, should be 32 or 64\n" % value)
       sys.exit()
   elif key == "arch":
     if value in ["rv32", "rv64"]:
@@ -214,32 +219,32 @@ def conf_line_parse(line):
     else:
       make_line += "SHIFT = -D " + value.upper()
   elif key == "near_mem":
-    if value not in near_mem:
-      print("Error: %s not a valid near mem, should be caches or tcm\n" % value)
+    if value not in near_mems:
+      print("Error: %s not a valid near mem, should be Caches or TCM\n" % value)
       sys.exit()
     else:
       make_line += "NEAR_MEM = -D Near_Mem_" + value
   elif key == "tv":
-    if not ((value is "on") or (value is "off")):
+    if value not in ["on", "off"]:
       print("Error: %s not valid for tandem verif, should be on or off\n" % value)
       sys.exit()
     else:
       prefix = "INCLUDE" if value is "on" else "EXCLUDE"
       make_line += "TV = -D " + prefix + "_TANDEM_VERIF"
   elif key == "db":
-    if not ((value is "on") or (value is "off")):
+    if value not in ["on", "off"]:
       print("Error: %s not valid for debug, should be on or off\n" % value)
       sys.exit()
     else:
       prefix = "INCLUDE" if value is "on" else "EXCLUDE"
       make_line += "DEBUG = -D " + prefix + "_GDB_CONTROL"
   elif key == "mem_zero":
-    if not ((value is "on") or (value is "off")):
+    if value not in ["on", "off"]:
       print("Error: %s not valid for initializing memory, should be on or off\n" % value)
       sys.exit()
     else:
       prefix = "INCLUDE" if value is "on" else "EXCLUDE"
-      make_line += "TV = -D " + prefix + "_INITIAL_MEMZERO"
+      make_line += "MEM_ZERO = -D " + prefix + "_INITIAL_MEMZERO"
   else:
     print("Error: key %s not recognized" % key)
     sys.exit()
@@ -253,8 +258,10 @@ def conf_make(filename):
 
   with open(filename, "r") as conf:
     for line in conf:
-      make_append = conf_line_parse(line)
-      print("%s\n" % make_append)
+      make_command += conf_line_parse(line)
+
+  print(make_command)
+      #print("%s" % make_append)
 
       #if (make_append == "error"):
       #  print("Error: some line in %.conf is bad\n" % instance)
