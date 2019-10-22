@@ -195,7 +195,24 @@ def conf_line_parse(line):
     else:
         print("Error: %s not a valid architecture, should be rv32 or rv64\n" % letter)
         sys.exit()
-      
+  elif key is "core":
+    if value not in cores:
+        print("Error: %s not a valid core, should be Piccolo or Flute\n" % letter)
+        sys.exit()
+    else:
+      make_line += "CORE = " + value
+  elif key is "mult":
+    if value not in multipliers: 
+        print("Error: %s not a valid multiplier, should be synth or serial\n" % letter)
+        sys.exit()
+    else:
+      make_line += "MULT = " + value.upper()
+  elif key is "shift":
+    if value not in shifters: 
+        print("Error: %s not a valid multiplier, should be synth ,serial, or barrel\n" % letter)
+        sys.exit()
+    else:
+      make_line += "SHIFT = " + value.upper()
 
 def conf_make(filename):
   instance = os.path.basename(filename).split(".")[0]
