@@ -52,9 +52,14 @@ SHIFT ?= -D SHIFT_BARREL
 NEAR_MEM ?= -D Near_Mem_Caches
 # NEAR_MEM ?= -D Near_Mem_TCM
 
+TV       ?= -D INCLUDE_TANDEM_VERIF
+DEBUG    ?= -D INCLUDE_GDB_CONTROL
+MEM_ZERO ?= -D EXCLUDE_INITIAL_MEMZERO
+# MEM_ZERO ?= -D INCLUDE_INITIAL_MEMZERO
+
 INSTANCE ?= $(shell echo $(CORE)$(ARCH) $(EXT) $(PRIV) | sed -e "s/-D//g" -e "s/ISA_/__/" -e "s/PRIV_/__/" -e "s/ //g" -e "s/ISA_//g" -e "s/PRIV_//g" -e "s/__/_/g")
 
-CORE_DEFINES = $(ARCH) $(FABRIC) $(EXT) $(PRIV) $(NEAR_MEM)
+CORE_DEFINES = $(ARCH) $(FABRIC) $(EXT) $(PRIV) $(NEAR_MEM) $(TV) $(DEBUG) $(MEM_ZERO)
 
 #################################################
 ##                                             ##
@@ -104,7 +109,7 @@ BSIM_EXE       = $(INST_DIR)/bsim
 
 VERILATOR_RSC = $(UPSTREAM_SRC)/Verilator
 VERILATOR_OBJ = $(INST_DIR)/obj_dir
-VSIM_EXE      = $(INST_DIR)/verilator_sim
+VSIM_EXE      = $(INST_DIR)/vsim
 
 #################################################
 ##                                             ##
