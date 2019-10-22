@@ -207,7 +207,7 @@ def conf_line_parse(line):
       print('Error: %s not a valid core, should be Piccolo or Flute\n' % value)
       sys.exit()
     else:
-      make_line += 'CORE="-D ' + value + '"'
+      make_line += 'CORE="' + value + '"'
   elif key == 'mult':
     if value not in multipliers: 
       print('Error: %s not a valid multiplier, should be synth or serial\n' % value)
