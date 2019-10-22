@@ -254,7 +254,7 @@ def conf_line_parse(line):
 def conf_make(filename):
   instance = os.path.basename(filename).split(".")[0]
 
-  make_command = 'make all INSTANCE="' + instance + '" '
+  make_command = 'make all INSTANCE=' + instance + ' '
 
   with open(filename, "r") as conf:
     for line in conf:
