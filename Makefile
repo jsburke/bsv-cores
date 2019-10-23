@@ -20,6 +20,13 @@ CORE       ?= Flute
 ARCH       ?= -D RV64
 FABRIC     ?= -D FABRIC64
 
+ifneq (,$(findstring RV32,$(ARCH)))
+  VIRT_MEM_SYS = -D Sv32
+endif
+ifneq (,$(findstring RV64,$(ARCH)))
+  VIRT_MEM_SYS = -D SV39
+endif
+
   # default ISA extensions
   # TODO: D at least requires F, C may have
   #       dependencies.  how to enforce like below
@@ -36,7 +43,7 @@ endif
   #       enforce this here some how
 ifeq ($(PRIV),)
   PRIV += -D ISA_PRIV_M
-  # PRIV += -D ISA_PRIV_S
+  PRIV += -D ISA_PRIV_S
   PRIV += -D ISA_PRIV_U
 endif
 
@@ -59,7 +66,7 @@ MEM_ZERO ?= -D EXCLUDE_INITIAL_MEMZERO
 
 INSTANCE ?= $(shell echo $(CORE)$(ARCH) $(EXT) $(PRIV) | sed -e "s/-D//g" -e "s/ISA_/__/" -e "s/PRIV_/__/" -e "s/ //g" -e "s/ISA_//g" -e "s/PRIV_//g" -e "s/__/_/g")
 
-CORE_DEFINES = $(ARCH) $(FABRIC) $(EXT) $(PRIV) $(NEAR_MEM) $(TV) $(DEBUG) $(MEM_ZERO)
+CORE_DEFINES = $(ARCH) $(FABRIC) $(EXT) $(PRIV) $(NEAR_MEM) $(TV) $(DEBUG) $(MEM_ZERO) $(VIRT_MEM_SYS)
 
 #################################################
 ##                                             ##
