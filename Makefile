@@ -14,13 +14,18 @@ SPACE +=
 ##                                             ##
 #################################################
 
-XLEN       ?= 64
-
   # which core I want to build simulations or
   # verilog of.  May be mixed due to above
 CORE       ?= Flute
-ARCH        = -D RV$(XLEN)
+ARCH       ?= -D RV64
 FABRIC     ?= -D FABRIC64
+
+ifneq (,$(findstring RV32,$(ARCH)))
+  VIRT_MEM_SYS = -D Sv32
+endif
+ifneq (,$(findstring RV64,$(ARCH)))
+  VIRT_MEM_SYS = -D SV39
+endif
 
   # default ISA extensions
   # TODO: D at least requires F, C may have
@@ -38,16 +43,30 @@ endif
   #       enforce this here some how
 ifeq ($(PRIV),)
   PRIV += -D ISA_PRIV_M
-  # PRIV += -D ISA_PRIV_S
+  PRIV += -D ISA_PRIV_S
   PRIV += -D ISA_PRIV_U
 endif
+
+ifneq (,$(findstring ISA_M,$(EXT))) # weird Make logic: if "ISA_M" in EXT, empty does not match
+  MUL ?= -D MULT_SYNTH
+  #MUL ?= -D MULT_SERIAL
+endif
+
+SHIFT ?= -D SHIFT_BARREL
+# SHIFT ?= -D SHIFT_SERIAL
+# SHIFT ?= -D SHIFT_MULT 
 
 NEAR_MEM ?= -D Near_Mem_Caches
 # NEAR_MEM ?= -D Near_Mem_TCM
 
+TV       ?= -D INCLUDE_TANDEM_VERIF
+DEBUG    ?= -D INCLUDE_GDB_CONTROL
+MEM_ZERO ?= -D EXCLUDE_INITIAL_MEMZERO
+# MEM_ZERO ?= -D INCLUDE_INITIAL_MEMZERO
+
 INSTANCE ?= $(shell echo $(CORE)$(ARCH) $(EXT) $(PRIV) | sed -e "s/-D//g" -e "s/ISA_/__/" -e "s/PRIV_/__/" -e "s/ //g" -e "s/ISA_//g" -e "s/PRIV_//g" -e "s/__/_/g")
 
-CORE_DEFINES = $(ARCH) $(FABRIC) $(EXT) $(PRIV) $(NEAR_MEM)
+CORE_DEFINES = $(ARCH) $(FABRIC) $(EXT) $(PRIV) $(NEAR_MEM) $(TV) $(DEBUG) $(MEM_ZERO) $(VIRT_MEM_SYS)
 
 #################################################
 ##                                             ##
@@ -85,8 +104,8 @@ BSC_NON_CPU    = $(subst $(SPACE),:,$(addprefix $(UPSTREAM_SRC)/,$(filter-out Fa
 FABRICS_DIR  = $(UPSTREAM_SRC)/Fabrics/
 BSC_FABRICS    = $(subst $(SPACE),:,$(addprefix $(FABRICS_DIR),$(filter-out README_Fabrics.txt,$(patsubst $(FABRICS_DIR)%,%,$(wildcard $(FABRICS_DIR)*/)))))
 
-BSC_PATH       = -p $(UPSTREAM_SRC)/CPU/Common:$(UPSTREAM_SRC)/CPU/$(CORE):$(BSC_NON_CPU):$(BSC_FABRICS):+
-BSV_TOP        = $(UPSTREAM_SRC)/Top/Top_HW_Side.bsv
+BSC_PATH      ?= -p $(UPSTREAM_SRC)/CPU/Common:$(UPSTREAM_SRC)/CPU/$(CORE):$(BSC_NON_CPU):$(BSC_FABRICS):+
+BSV_TOP       ?= $(UPSTREAM_SRC)/Top/Top_HW_Side.bsv
 BSIM_EXE       = $(INST_DIR)/bsim 
 
 #################################################
@@ -97,7 +116,7 @@ BSIM_EXE       = $(INST_DIR)/bsim
 
 VERILATOR_RSC = $(UPSTREAM_SRC)/Verilator
 VERILATOR_OBJ = $(INST_DIR)/obj_dir
-VSIM_EXE      = $(INST_DIR)/verilator_sim
+VSIM_EXE      = $(INST_DIR)/vsim
 
 #################################################
 ##                                             ##
@@ -150,7 +169,7 @@ help:
 	@echo "  Most will be absorbed into a build script at some point"
 	@echo "  Look into the guts of the make file for potentially easier control"
 	@echo " "
-	@echo "  XLEN -- 32 or 64 for bitness"
+	@echo "  ARCH -- RV32 or RV64 for bitness"
 	@echo " "
 	@echo "  CORE -- Piccolo or Flute"
 	@echo " "
