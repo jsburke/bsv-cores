@@ -28,6 +28,10 @@
 #
 #  -b --build   <conf_name>           Build the proc specified by the file in
 #                                     the conf dir
+#
+#     --dry-run                       uses the conf specified by --build to
+#                                     launch a make dry run
+
 
 import os, sys, argparse
 
@@ -92,8 +96,11 @@ def parse():
   parser.set_defaults(shift = "barrel")
   parser.set_defaults(near_mem = "Caches")
 
+  # sub args for --build
+
+  parser.add_argument("--dry-run", action = "store_true", dest = "dry_run")
+
   options     = parser.parse_args()
-  descriptors = [options.core, options.arch, options.priv, options.fabric, options.tv, options.db, options.mem_zero, options.mult, options.shift]
 
   if options.help:
     parser.error()
@@ -253,7 +260,7 @@ def conf_line_parse(line):
 
   return make_line
 
-def conf_make(filename):
+def conf_make(filename, is_dry_run):
   instance = os.path.basename(filename).split(".")[0]
 
   make_command = 'make all INSTANCE="' + instance + '" '
@@ -261,6 +268,9 @@ def conf_make(filename):
   with open(filename, "r") as conf:
     for line in conf:
       make_command += conf_line_parse(line)
+
+  if is_dry_run:
+    make_command += " -n"
 
   print(make_command)
   os.system(make_command)
@@ -281,7 +291,7 @@ def main():
 
   if (options.build or options.fast):
     build_conf = conf_filename_make(here, conf_name)
-    conf_make(build_conf)
+    conf_make(build_conf, options.dry_run)
 
 #############################
 ##                         ##
