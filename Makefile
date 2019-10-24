@@ -4,7 +4,6 @@
 ##                                             ##
 #################################################
 
-HERE   = $(patsubst %/,%,$(dir $(abspath $(MAKEFILE_LIST))))
 SPACE :=
 SPACE += 
 
@@ -74,12 +73,12 @@ CORE_DEFINES = $(ARCH) $(FABRIC) $(EXT) $(PRIV) $(NEAR_MEM) $(TV) $(DEBUG) $(MEM
 ##                                             ##
 #################################################
 
-UPSTREAM     = $(HERE)/upstream
+UPSTREAM     = ./upstream
 UPSTREAM_SRC = $(UPSTREAM)/src
 FLUTE_DIR    = $(UPSTREAM_SRC)/Flute
 PICCOLO_DIR  = $(UPSTREAM_SRC)/Piccolo
 
-BUILD_DIR    = $(HERE)/build
+BUILD_DIR    = ./build
 INST_DIR     = $(BUILD_DIR)/$(INSTANCE)
 
 #################################################
@@ -88,10 +87,10 @@ INST_DIR     = $(BUILD_DIR)/$(INSTANCE)
 ##                                             ##
 #################################################
 
-BSV_BUILD     = $(INST_DIR)/build
-BSV_INFO      = $(BSV_BUILD) 
-BSV_SIM       = $(BSV_BUILD) 
-BSV_VERILOG   = $(INST_DIR)/verilog
+BSV_BUILD      = $(INST_DIR)/build
+BSV_INFO       = $(BSV_BUILD) 
+BSV_SIM        = $(BSV_BUILD) 
+BSV_VERILOG    = $(INST_DIR)/verilog
 
 BSC_DIRS       = -bdir $(BSV_BUILD) -simdir $(BSV_SIM) -info-dir $(BSV_INFO) -vdir $(BSV_VERILOG)
 
@@ -101,7 +100,7 @@ BSC_RTS        = +RTS -K128M -RTS
 
 BSC_NON_CPU    = $(subst $(SPACE),:,$(addprefix $(UPSTREAM_SRC)/,$(filter-out Fabrics,$(filter-out CPU,$(patsubst $(UPSTREAM_SRC)/%/,%,$(wildcard $(UPSTREAM_SRC)/*/))))))
 
-FABRICS_DIR  = $(UPSTREAM_SRC)/Fabrics/
+FABRICS_DIR    = $(UPSTREAM_SRC)/Fabrics/
 BSC_FABRICS    = $(subst $(SPACE),:,$(addprefix $(FABRICS_DIR),$(filter-out README_Fabrics.txt,$(patsubst $(FABRICS_DIR)%,%,$(wildcard $(FABRICS_DIR)*/)))))
 
 BSC_PATH      ?= -p $(UPSTREAM_SRC)/CPU/Common:$(UPSTREAM_SRC)/CPU/$(CORE):$(BSC_NON_CPU):$(BSC_FABRICS):+
@@ -178,6 +177,7 @@ help:
 	@echo "  PRIV -- List of priv levels to be included like -D ISA_PRIV_M -D ISA_PRIV_U"
 	@echo " "
 	@echo " And many others, look into the codebase and makefile"
+
 #################################################
 ##                                             ##
 ##  Compile and Sim Targets                    ##
@@ -199,9 +199,10 @@ $(VSIM_EXE): compile-verilog
 	sed -f $(VERILATOR_RSC)/sed_script.txt $(BSV_VERILOG)/mkTop_HW_Side.v > tmp.v
 	cat $(VERILATOR_RSC)/verilator_config.vlt $(VERILATOR_RSC)/import_DPI_C_decls.v tmp.v > $(BSV_VERILOG)/mkTop_HW_Side_edited.v
 	rm -f tmp.v
-	cd $(INST_DIR) && verilator -I$(BSV_VERILOG) -I$(UPSTREAM_SRC)/Lib_Verilog --stats -O3 -CFLAGS -O3 -LDFLAGS -static --x-assign fast --x-initial fast --noassert --cc $(BSV_VERILOG)/mkTop_HW_Side_edited.v --exe sim_main.cpp $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
+	cd $(INST_DIR) && verilator -I./verilog -I../../upstream/src/Lib_Verilog --stats -O3 -CFLAGS -O3 -LDFLAGS -static --x-assign fast --x-initial fast --noassert --cc ./verilog/mkTop_HW_Side_edited.v --exe sim_main.cpp ../../upstream/src/Top/C_Imported_Functions.c
 	cp $(UPSTREAM_SRC)/Verilator/sim_main.cpp $(VERILATOR_OBJ)/sim_main.cpp
-	cd $(VERILATOR_OBJ) && make -j -f VmkTop_HW_Side_edited.mk VmkTop_HW_Side_edited && cp VmkTop_HW_Side_edited $(VSIM_EXE)
+	cd $(VERILATOR_OBJ) && make -j -f VmkTop_HW_Side_edited.mk VmkTop_HW_Side_edited
+	cp $(VERILATOR_OBJ)/VmkTop_HW_Side_edited $(VSIM_EXE)
 
 .PHONY: sims
 sims: bsim verilator
