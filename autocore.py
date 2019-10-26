@@ -113,11 +113,13 @@ def parse():
 ##                         ##
 #############################
 
+  # function to gather bitness and risc-v extensions desired
+  # input is in the form of something like 'rv32imac'
 def rv_arch_parse(rv_str):
   xlen = rv_str[:4]
   ext  = rv_str[4:].replace("g","imafd")
 
-  if not("i" in ext):
+  if not("i" in ext):  # I extenstion is mandatory
     print("ERROR: RV I extension is mandatory\n")
     sys.exit()
 
@@ -131,6 +133,8 @@ def rv_arch_parse(rv_str):
 
   return [xlen, ext]
 
+  # function that will write a new config file
+  # based on the cli args.  
 def new_conf_build(options, path, conf_name):
   core        = options.core
   [xlen, ext] = rv_arch_parse(options.arch.lower())
@@ -168,6 +172,8 @@ def new_conf_build(options, path, conf_name):
 
   fp.close()
 
+  # function to make sure the place we read or write
+  # a conf from is where the project expects it
 def conf_filename_make(path, conf_str):
   if conf_str.endswith(".conf"):
     conf_file = path + "/conf/" + conf_str
@@ -175,6 +181,8 @@ def conf_filename_make(path, conf_str):
     conf_file = path + "/conf/" + conf_str + ".conf"
   return conf_file
 
+  # function to read a conf file and transform it
+  # into a string that make can consume on the command line
 def conf_line_parse(line):
   [key, value] = line.rstrip().split(':')
   make_line = ' '
@@ -260,6 +268,8 @@ def conf_line_parse(line):
 
   return make_line
 
+  # function opens a conf and looks to the command line
+  # to launch make
 def conf_make(filename, is_dry_run):
   instance = os.path.basename(filename).split(".")[0]
 
@@ -286,17 +296,13 @@ def main():
 
   conf_name = next(fn for fn in [options.new, options.build, options.fast] if fn is not None)
 
+  # make a new configuration of a core
   if (options.new or options.fast):
     new_conf_build(options, here, conf_name)
 
+  # make the verilog and sims defined in a configuration
   if (options.build or options.fast):
     build_conf = conf_filename_make(here, conf_name)
     conf_make(build_conf, options.dry_run)
-
-#############################
-##                         ##
-## Go Button               ##
-##                         ##
-#############################
 
 main()
