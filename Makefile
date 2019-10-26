@@ -42,7 +42,7 @@ endif
   #       enforce this here some how
 ifeq ($(PRIV),)
   PRIV += -D ISA_PRIV_M
-  PRIV += -D ISA_PRIV_S
+  # PRIV += -D ISA_PRIV_S
   PRIV += -D ISA_PRIV_U
 endif
 
