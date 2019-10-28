@@ -23,15 +23,18 @@
 #     --shift    [serial|barrel|mult] Shifter Choice, mult requires M
 #                                     default barrel
 #     --init-mem-zero                 Initial memory zero option (default off)
+#     --target  <target_name>         specify a makefile target
+#                                     [all (default), verilog, bsim, verilator]
 #
 #     Using an existing conf
 #
 #  -b --build   <conf_name>           Build the proc specified by the file in
 #                                     the conf dir
 #
-#     --dry-run                       uses the conf specified by --build to
+#     --dry-run                       Uses the conf specified by --build to
 #                                     launch a make dry run
-
+#     --force-target <target_name>    Forces a specific makefile target
+#                                     This overrides conf values set by --target
 
 import os, sys, argparse
 
@@ -45,6 +48,7 @@ fabrics     = [32, 64]
 multipliers = ["serial", "synth"]
 shifters    = ["serial", "barrel", "mult"]
 near_mems   = ["Caches", "TCM"]
+targets     = ["all", "verilog", "bsim", "verilator"]
 
 #############################
 ##                         ##
@@ -92,6 +96,7 @@ def parse():
   parser.add_argument("--mult", choices = multipliers, type = str)
   parser.add_argument("--shift", choices = shifters, type = str)
   parser.add_argument("--near_mem", choices = near_mems, type = str)
+  parser.add_argument("--target", choices = targets, type = str)
   parser.set_defaults(mult  = "synth")
   parser.set_defaults(shift = "barrel")
   parser.set_defaults(near_mem = "Caches")
@@ -99,6 +104,7 @@ def parse():
   # sub args for --build
 
   parser.add_argument("--dry-run", action = "store_true", dest = "dry_run")
+  parser.add_argument("--force-target", type = str, dest = "force_target")
 
   options     = parser.parse_args()
 
@@ -146,6 +152,7 @@ def new_conf_build(options, path, conf_name):
   multiply    = options.mult
   shifter     = options.shift
   near_mem    = options.near_mem
+  target      = options.target
 
   if not core:
     print("Error: a core must be specified with --core")
@@ -169,6 +176,7 @@ def new_conf_build(options, path, conf_name):
   fp.write("tv:%s\n"     % tv)
   fp.write("db:%s\n"     % db)
   fp.write("mem_zero:%s" % mem_zero)
+  fp.write("target:%s"   % target)
 
   fp.close()
 
@@ -183,7 +191,7 @@ def conf_filename_make(path, conf_str):
 
   # function to read a conf file and transform it
   # into a string that make can consume on the command line
-def conf_line_parse(line):
+def conf_line_parse(line, ignore_target):
   [key, value] = line.rstrip().split(':')
   make_line = ' '
 
@@ -262,6 +270,13 @@ def conf_line_parse(line):
     else:
       prefix = 'INCLUDE' if value is 'on' else 'EXCLUDE'
       make_line += 'MEM_ZERO="-D ' + prefix + '_INITIAL_MEMZERO"'
+  elif key == 'target':
+    if not ignore_target:
+      if value not in targets:
+        print('Error: %s is not a valid make target, should be all, verilog, verilator, or bsim\n' % value)
+        sys.exit()
+      else:
+        make_line += " " + value
   else:
     print('Error: key %s not recognized' % key)
     sys.exit()
@@ -270,14 +285,18 @@ def conf_line_parse(line):
 
   # function opens a conf and looks to the command line
   # to launch make
-def conf_make(filename, is_dry_run):
+def conf_make(filename, is_dry_run, target):
   instance = os.path.basename(filename).split(".")[0]
 
-  make_command = 'make all INSTANCE="' + instance + '" '
+  has_forced_target = target != ""
+  make_command = 'make INSTANCE="' + instance + '" '
 
   with open(filename, "r") as conf:
     for line in conf:
-      make_command += conf_line_parse(line)
+      make_command += conf_line_parse(line, has_forced_target)
+
+  if has_forced_target:
+    make_command += " " + target
 
   if is_dry_run:
     make_command += " -n"
@@ -303,6 +322,6 @@ def main():
   # make the verilog and sims defined in a configuration
   if (options.build or options.fast):
     build_conf = conf_filename_make(here, conf_name)
-    conf_make(build_conf, options.dry_run)
+    conf_make(build_conf, options.dry_run, options.force_target)
 
 main()
