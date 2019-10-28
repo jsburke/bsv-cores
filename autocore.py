@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# autocore usage:
-#
+#autocore usage:
 #  -h --help                         Print this message
 #
 #  -v --verbose
@@ -62,7 +61,7 @@ class parser_with_error(argparse.ArgumentParser):
     source = open(sys.argv[0]) # open the source for this script
     for(line_num, line) in enumerate(source):
       if(line[0] != "#"): sys.exit(msg != "") # exit program
-      if(line_num > 1):   print(line[1:].rstrip("\n"))
+      if(line_num > 0):   print(line[1:].rstrip("\n"))
 
 def parse():
   parser = parser_with_error(add_help = False)
