@@ -288,7 +288,7 @@ def conf_line_parse(line, ignore_target):
 def conf_make(filename, is_dry_run, target):
   instance = os.path.basename(filename).split(".")[0]
 
-  has_forced_target = target != ""
+  has_forced_target = (target != "") and (target is not None)
   make_command = 'make INSTANCE="' + instance + '" '
 
   with open(filename, "r") as conf:
