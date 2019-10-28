@@ -193,6 +193,9 @@ bsim: $(BSIM_EXE)
 $(BSIM_EXE): compile-sim
 	bsc -sim -parallel-sim-link 8 $(BSC_DIRS) -e mkTop_HW_Side -o $(BSIM_EXE) -Xc++  -D_GLIBCXX_USE_CXX11_ABI=0 -Xl -v -Xc -O3 -Xc++ -O3 $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
 
+.PHONY: verilog
+verilog: compile-verilog
+
 .PHONY: verilator
 verilator: $(VSIM_EXE)
 $(VSIM_EXE): compile-verilog
