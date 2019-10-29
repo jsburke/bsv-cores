@@ -54,6 +54,10 @@ shifters    = ["serial", "barrel", "mult"]
 near_mems   = ["Caches", "TCM"]
 targets     = ["all", "verilog", "bsim", "verilator"]
 
+# configuration file controls
+
+conf_delimiter = "--"
+
 #############################
 ##                         ##
 ## Command Line            ##
@@ -165,6 +169,7 @@ def new_conf_build(options, path, conf_name):
   near_mem    = options.near_mem
   target      = options.target
   top_file    = options.top_file
+  bsc_path    = options.bsc_path
 
   if not core:
     print("Error: a core must be specified with --core")
@@ -178,18 +183,19 @@ def new_conf_build(options, path, conf_name):
 
   fp = open(new_conf, "w+")
 
-  fp.write("core:%s\n"     % core)
-  fp.write("arch:%s\n"     % xlen)
-  fp.write("ext:%s\n"      % ext)
-  fp.write("priv:%s\n"     % privs)
-  fp.write("fabric:%d\n"   % fabric)
-  fp.write("mult:%s\n"     % multiply)
-  fp.write("shift:%s\n"    % shifter)
-  fp.write("tv:%s\n"       % tv)
-  fp.write("db:%s\n"       % db)
-  fp.write("mem_zero:%s\n" % mem_zero)
-  fp.write("target:%s\n"   % target)
-  fp.write("top_file:%s\n" % top_file)
+  fp.write("core%s%s\n"     % (conf_delimiter, core))
+  fp.write("arch%s%s\n"     % (conf_delimiter, xlen))
+  fp.write("ext%s%s\n"      % (conf_delimiter, ext))
+  fp.write("priv%s%s\n"     % (conf_delimiter, privs))
+  fp.write("fabric%s%d\n"   % (conf_delimiter, fabric))
+  fp.write("mult%s%s\n"     % (conf_delimiter, multiply))
+  fp.write("shift%s%s\n"    % (conf_delimiter, shifter))
+  fp.write("tv%s%s\n"       % (conf_delimiter, tv))
+  fp.write("db%s%s\n"       % (conf_delimiter, db))
+  fp.write("mem_zero%s%s\n" % (conf_delimiter, mem_zero))
+  fp.write("target%s%s\n"   % (conf_delimiter, target))
+  fp.write("top_file%s%s\n" % (conf_delimiter, top_file))
+  fp.write("bsc_path%s%s\n" % (conf_delimiter, bsc_path))
 
   fp.close()
 
@@ -205,7 +211,7 @@ def conf_filename_make(path, conf_str):
   # function to read a conf file and transform it
   # into a string that make can consume on the command line
 def conf_line_parse(line, ignore_target):
-  [key, value] = line.rstrip().split(':')
+  [key, value] = line.rstrip().split(conf_delimiter)
   make_line = ' '
 
   if key == 'ext':
