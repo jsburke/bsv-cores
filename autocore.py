@@ -297,7 +297,10 @@ def conf_line_parse(line, ignore_target):
       else:
         make_line += " " + value
   elif key == 'top_file':
-    make_line += 'BSV_TOP="' + value +'"'
+    if value != "None":
+      make_line += 'BSV_TOP="' + value +'"'
+  elif key == 'bsc_path':
+    make_line += 'BSC_PATH="-p ' + value + '"'
   else:
     print('Error: key %s not recognized' % key)
     sys.exit()
