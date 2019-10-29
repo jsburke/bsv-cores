@@ -22,7 +22,7 @@
 #     --shift    <serial|barrel|mult> Shifter Choice, mult requires M
 #                                     default barrel
 #     --init-mem-zero                 Initial memory zero option (default off)
-#     --target  <target_name>         specify a makefile target
+#     --target   <target_name>        specify a makefile target
 #                                     [all (default), verilog, bsim, verilator]
 #     --top-file <path/to/file>       Specifies a new top file for bsc
 #                                     may cause simulation behavior to break
@@ -110,6 +110,7 @@ def parse():
   parser.set_defaults(mult  = "synth")
   parser.set_defaults(shift = "barrel")
   parser.set_defaults(near_mem = "Caches")
+  parser.set_defaults(target = "all")
 
   # sub args for --build
 
