@@ -13,17 +13,22 @@
 #     --core     <core_str>           Which core to use (Piccolo, Flute) 
 #     --arch     <arch_str>           Basic risc-v string, ex: 'rv32imac'
 #     --priv     <priv_str>           Priv levels to use,  ex: 'mu'
-#     --fabric   [32|64]              Fabric definition (default 64)
-#     --near_mem [Caches|TCM]         Near Mem as Caches or Tightly coupled memory
+#     --fabric   <32|64>              Fabric definition (default 64)
+#     --near-mem <Caches|TCM>         Near Mem as Caches or Tightly coupled memory
 #     --tv                            Enable tandem verif (default off)
 #     --db                            Enable debug module (default off)
-#     --mult     [serial|synth]       Multiplier choice, requires M extension
+#     --mult     <serial|synth>       Multiplier choice, requires M extension
 #                                     synth is default
-#     --shift    [serial|barrel|mult] Shifter Choice, mult requires M
+#     --shift    <serial|barrel|mult> Shifter Choice, mult requires M
 #                                     default barrel
 #     --init-mem-zero                 Initial memory zero option (default off)
 #     --target  <target_name>         specify a makefile target
 #                                     [all (default), verilog, bsim, verilator]
+#     --top-file <path/to/file>       Specifies a new top file for bsc
+#                                     may cause simulation behavior to break
+#     --bsc-path [list:of:paths]      new colon separated list of directories to
+#                                     look into for building. If no list is passed
+#                                     will prompt and guide the user
 #
 #     Using an existing conf
 #
@@ -94,8 +99,14 @@ def parse():
   parser.add_argument("--init-mem-zero", action = "store_true", dest = "mem_zero")
   parser.add_argument("--mult", choices = multipliers, type = str)
   parser.add_argument("--shift", choices = shifters, type = str)
-  parser.add_argument("--near_mem", choices = near_mems, type = str)
+  parser.add_argument("--near-mem", choices = near_mems, type = str, dest = "near_mem")
   parser.add_argument("--target", choices = targets, type = str)
+  parser.add_argument("--top-file", type = str, dest = "top_file")
+  parser.add_argument("--bsc-path", type = str, dest = "bsc_path")
+
+  parser.set_defaults(core  = "Piccolo")
+  parser.set_defaults(arch  = "rv32im")
+  parser.set_defaults(priv  = "m")
   parser.set_defaults(mult  = "synth")
   parser.set_defaults(shift = "barrel")
   parser.set_defaults(near_mem = "Caches")
@@ -152,6 +163,7 @@ def new_conf_build(options, path, conf_name):
   shifter     = options.shift
   near_mem    = options.near_mem
   target      = options.target
+  top_file    = options.top_file
 
   if not core:
     print("Error: a core must be specified with --core")
@@ -165,17 +177,18 @@ def new_conf_build(options, path, conf_name):
 
   fp = open(new_conf, "w+")
 
-  fp.write("core:%s\n"   % core)
-  fp.write("arch:%s\n"   % xlen)
-  fp.write("ext:%s\n"    % ext)
-  fp.write("priv:%s\n"   % privs)
-  fp.write("fabric:%d\n" % fabric)
-  fp.write("mult:%s\n"   % multiply)
-  fp.write("shift:%s\n"  % shifter)
-  fp.write("tv:%s\n"     % tv)
-  fp.write("db:%s\n"     % db)
-  fp.write("mem_zero:%s" % mem_zero)
-  fp.write("target:%s"   % target)
+  fp.write("core:%s\n"     % core)
+  fp.write("arch:%s\n"     % xlen)
+  fp.write("ext:%s\n"      % ext)
+  fp.write("priv:%s\n"     % privs)
+  fp.write("fabric:%d\n"   % fabric)
+  fp.write("mult:%s\n"     % multiply)
+  fp.write("shift:%s\n"    % shifter)
+  fp.write("tv:%s\n"       % tv)
+  fp.write("db:%s\n"       % db)
+  fp.write("mem_zero:%s\n" % mem_zero)
+  fp.write("target:%s\n"   % target)
+  fp.write("top_file:%s\n" % top_file)
 
   fp.close()
 
@@ -276,6 +289,8 @@ def conf_line_parse(line, ignore_target):
         sys.exit()
       else:
         make_line += " " + value
+  elif key == 'top_file':
+    make_line += 'BSV_TOP="' + value +'"'
   else:
     print('Error: key %s not recognized' % key)
     sys.exit()
