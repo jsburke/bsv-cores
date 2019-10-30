@@ -55,9 +55,10 @@ shifters    = ["serial", "barrel", "mult"]
 near_mems   = ["Caches", "TCM"]
 targets     = ["all", "verilog", "bsim", "verilator"]
 
-# configuration file controls
+# script controls
 
 conf_delimiter = "--"
+verbosity      = "q" # default quiet, not useful yet
 
 #############################
 ##                         ##
@@ -120,18 +121,18 @@ def parse():
   if options.help:
     parser.error()
   else:
-    return args_status_get(options, sys.argv) # list of (argparse-dest, T/F cli use, value given)
+    return args_status_get(options, sys.argv) # dict of (argparse-dest, value given)
 
 def args_status_get(args, argv):
-  args_tuples = []
+  args_dict = {}
   for arg in vars(args):
     arg_value = getattr(args, arg)
     arg_tuple = (arg, arg_value)
     
     is_arg_used = True if (("--" + arg.replace("_","-") in argv) or (arg_value not in [None, False])) else False
     if is_arg_used:
-      args_tuples.append(arg_tuple)
-  return args_tuples
+      args_dict.update({arg : arg_value})
+  return args_dict
 
 #############################
 ##                         ##
@@ -342,8 +343,11 @@ def conf_make(filename, is_dry_run, target):
 def main():
   options = parse()
 
-  for option in options:
-    print(option)
+  verbosity = options["verbosity"]
+  del options["verbosity"]
+
+  # for key, value in options.items():
+  #   print("%s -- %s" % (key, value))
 
   sys.exit()
 
