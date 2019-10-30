@@ -337,11 +337,6 @@ def conf_make(filename, is_dry_run, target):
 def main():
   options = parse()
 
-  for arg in vars(options):
-    print("%s -- %s" % (arg, getattr(options, arg)))
-
-  sys.exit()
-
   conf_name = next(fn for fn in [options.new, options.build, options.fast] if fn is not None)
 
   # make a new configuration of a core
