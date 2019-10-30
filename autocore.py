@@ -26,9 +26,10 @@
 #                                     [all (default), verilog, bsim, verilator]
 #     --top-file <path/to/file>       Specifies a new top file for bsc
 #                                     may cause simulation behavior to break
-#     --bsc-path [list:of:paths]      new colon separated list of directories to
-#                                     look into for building. If no list is passed
-#                                     will prompt and guide the user
+#     --bsc-path <list:of:paths>      new colon separated list of directories to
+#                                     look into for building. (exclusive with --bsc-path-aid) 
+#     --bsc-path-aid                  use a series of prompts to generate bsc path
+#                                     rather than entering a giant string
 #
 #     Using an existing conf
 #
@@ -100,13 +101,14 @@ def parse():
   parser.add_argument("--fabric", choices = fabrics, type = int)
   parser.add_argument("--tv", action = "store_true")
   parser.add_argument("--db", action = "store_true")
-  parser.add_argument("--init-mem-zero", action = "store_true", dest = "mem_zero")
+  parser.add_argument("--init-mem-zero", action = "store_true")
   parser.add_argument("--mult", choices = multipliers, type = str)
   parser.add_argument("--shift", choices = shifters, type = str)
-  parser.add_argument("--near-mem", choices = near_mems, type = str, dest = "near_mem")
+  parser.add_argument("--near-mem", choices = near_mems, type = str)
   parser.add_argument("--target", choices = targets, type = str)
-  parser.add_argument("--top-file", type = str, dest = "top_file")
-  parser.add_argument("--bsc-path", type = str, dest = "bsc_path")
+  parser.add_argument("--top-file", type = str)
+  parser.add_argument("--bsc-path", type = str)
+  parser.add_argument("--bsc-path-aid", action = "store_true")
 
   parser.set_defaults(core  = "Piccolo")
   parser.set_defaults(arch  = "rv32im")
@@ -118,8 +120,8 @@ def parse():
 
   # sub args for --build
 
-  parser.add_argument("--dry-run", action = "store_true", dest = "dry_run")
-  parser.add_argument("--force-target", type = str, dest = "force_target")
+  parser.add_argument("--dry-run", action = "store_true")#, dest = "dry_run")
+  parser.add_argument("--force-target", type = str)#, dest = "force_target")
 
   options     = parser.parse_args()
 
@@ -163,7 +165,7 @@ def new_conf_build(options, path, conf_name):
   fabric      = 64 if not options.fabric else options.fabric
   tv          = "on" if options.tv       else "off"
   db          = "on" if options.db       else "off"
-  mem_zero    = "on" if options.mem_zero else "off"
+  init_mem_zero    = "on" if options.init_mem_zero else "off"
   multiply    = options.mult
   shifter     = options.shift
   near_mem    = options.near_mem
@@ -192,7 +194,7 @@ def new_conf_build(options, path, conf_name):
   fp.write("shift%s%s\n"    % (conf_delimiter, shifter))
   fp.write("tv%s%s\n"       % (conf_delimiter, tv))
   fp.write("db%s%s\n"       % (conf_delimiter, db))
-  fp.write("mem_zero%s%s\n" % (conf_delimiter, mem_zero))
+  fp.write("init_mem_zero%s%s\n" % (conf_delimiter, init_mem_zero))
   fp.write("target%s%s\n"   % (conf_delimiter, target))
   fp.write("top_file%s%s\n" % (conf_delimiter, top_file))
   fp.write("bsc_path%s%s\n" % (conf_delimiter, bsc_path))
@@ -282,7 +284,7 @@ def conf_line_parse(line, ignore_target):
     else:
       prefix = 'INCLUDE' if value is 'on' else 'EXCLUDE'
       make_line += 'DEBUG="-D ' + prefix + '_GDB_CONTROL"'
-  elif key == 'mem_zero':
+  elif key == 'init_mem_zero':
     if value not in ['on', 'off']:
       print('Error: %s not valid for initializing memory, should be on or off\n' % value)
       sys.exit()
