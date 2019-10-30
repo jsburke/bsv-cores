@@ -110,14 +110,6 @@ def parse():
   parser.add_argument("--bsc-path", type = str)
   parser.add_argument("--bsc-path-aid", action = "store_true")
 
-  parser.set_defaults(core  = "Piccolo")
-  parser.set_defaults(arch  = "rv32im")
-  parser.set_defaults(priv  = "m")
-  parser.set_defaults(mult  = "synth")
-  parser.set_defaults(shift = "barrel")
-  parser.set_defaults(near_mem = "Caches")
-  parser.set_defaults(target = "all")
-
   # sub args for --build
 
   parser.add_argument("--dry-run", action = "store_true")#, dest = "dry_run")
@@ -128,7 +120,18 @@ def parse():
   if options.help:
     parser.error()
   else:
-    return options
+    return args_status_get(options, sys.argv) # list of (argparse-dest, T/F cli use, value given)
+
+def args_status_get(args, argv):
+  args_tuples = []
+  for arg in vars(args):
+    arg_value = getattr(args, arg)
+    arg_tuple = (arg, arg_value)
+    
+    is_arg_used = True if (("--" + arg.replace("_","-") in argv) or (arg_value not in [None, False])) else False
+    if is_arg_used:
+      args_tuples.append(arg_tuple)
+  return args_tuples
 
 #############################
 ##                         ##
@@ -338,6 +341,11 @@ def conf_make(filename, is_dry_run, target):
 
 def main():
   options = parse()
+
+  for option in options:
+    print(option)
+
+  sys.exit()
 
   conf_name = next(fn for fn in [options.new, options.build, options.fast] if fn is not None)
 
