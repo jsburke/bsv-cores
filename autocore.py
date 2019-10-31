@@ -163,45 +163,10 @@ def rv_arch_parse(rv_str):
   # function that will write a new config file
   # based on the cli args.  
 def new_conf_build(options, path, conf_name):
-  core        = options.core
-  [xlen, ext] = rv_arch_parse(options.arch.lower())
-  privs       = options.priv
-  fabric      = 64 if not options.fabric else options.fabric
-  tv          = "on" if options.tv       else "off"
-  db          = "on" if options.db       else "off"
-  init_mem_zero    = "on" if options.init_mem_zero else "off"
-  multiply    = options.mult
-  shifter     = options.shift
-  near_mem    = options.near_mem
-  target      = options.target
-  top_file    = options.top_file
-  bsc_path    = options.bsc_path
-
-  if not core:
-    print("Error: a core must be specified with --core")
-    sys.exit()
-
-  if not privs:
-    print("Error: a privilidge scheme must be defined with --priv")
-    sys.exit()
-
-  new_conf = conf_filename_make(path, conf_name)
-
-  fp = open(new_conf, "w+")
-
-  fp.write("core%s%s\n"     % (conf_delimiter, core))
-  fp.write("arch%s%s\n"     % (conf_delimiter, xlen))
-  fp.write("ext%s%s\n"      % (conf_delimiter, ext))
-  fp.write("priv%s%s\n"     % (conf_delimiter, privs))
-  fp.write("fabric%s%d\n"   % (conf_delimiter, fabric))
-  fp.write("mult%s%s\n"     % (conf_delimiter, multiply))
-  fp.write("shift%s%s\n"    % (conf_delimiter, shifter))
-  fp.write("tv%s%s\n"       % (conf_delimiter, tv))
-  fp.write("db%s%s\n"       % (conf_delimiter, db))
-  fp.write("init_mem_zero%s%s\n" % (conf_delimiter, init_mem_zero))
-  fp.write("target%s%s\n"   % (conf_delimiter, target))
-  fp.write("top_file%s%s\n" % (conf_delimiter, top_file))
-  fp.write("bsc_path%s%s\n" % (conf_delimiter, bsc_path))
+  fp = open(conf_filename_make(path, conf_name), "w+")
+  
+  for key, value in options.items():
+    fp.write("%s%s%s\n" % (key, conf_delimiter, value))
 
   fp.close()
 
