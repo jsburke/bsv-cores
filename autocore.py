@@ -349,17 +349,15 @@ def main():
   # for key, value in options.items():
   #   print("%s -- %s" % (key, value))
 
-  sys.exit()
-
-  conf_name = next(fn for fn in [options.new, options.build, options.fast] if fn is not None)
+  conf_name = next(fn for fn in [options.get("new"), options.get("build"), options.get("fast")] if fn is not None)
 
   # make a new configuration of a core
-  if (options.new or options.fast):
+  if (options.get("new") or options.get("fast")):
     new_conf_build(options, here, conf_name)
 
   # make the verilog and sims defined in a configuration
-  if (options.build or options.fast):
+  if (options.get("build") or options.get("fast")):
     build_conf = conf_filename_make(here, conf_name)
-    conf_make(build_conf, options.dry_run, options.force_target)
+    conf_make(build_conf, options.get("dry_run"), options.get("force_target"))
 
 main()
