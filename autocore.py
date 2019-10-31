@@ -27,9 +27,7 @@
 #     --top-file <path/to/file>       Specifies a new top file for bsc
 #                                     may cause simulation behavior to break
 #     --bsc-path <list:of:paths>      new colon separated list of directories to
-#                                     look into for building. (exclusive with --bsc-path-aid) 
-#     --bsc-path-aid                  use a series of prompts to generate bsc path
-#                                     rather than entering a giant string
+#                                     look into for building
 #
 #     Using an existing conf
 #
@@ -41,7 +39,7 @@
 #     --force-target <target_name>    Forces a specific makefile target
 #                                     This overrides conf values set by --target
 
-import os, sys, argparse
+import os, sys, argparse, subprocess
 
 here =  os.path.abspath(os.path.dirname(sys.argv[0]))
 
@@ -108,11 +106,7 @@ def parse():
   parser.add_argument("--near-mem", choices = near_mems, type = str)
   parser.add_argument("--target", choices = targets, type = str)
   parser.add_argument("--top-file", type = str)
-
-  bsc_path_args = parser.add_mutually_exclusive_group()
-
-  bsc_path_args.add_argument("--bsc-path", type = str, dest = "bsc_path")
-  bsc_path_args.add_argument("--bsc-path-aid", action = "store_const", const = "aid", dest = "bsc_path")
+  parser.add_argument("--bsc-path", type = str)
 
   # sub args for --build
 
