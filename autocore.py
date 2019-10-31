@@ -108,8 +108,11 @@ def parse():
   parser.add_argument("--near-mem", choices = near_mems, type = str)
   parser.add_argument("--target", choices = targets, type = str)
   parser.add_argument("--top-file", type = str)
-  parser.add_argument("--bsc-path", type = str)
-  parser.add_argument("--bsc-path-aid", action = "store_true")
+
+  bsc_path_args = parser.add_mutually_exclusive_group()
+
+  bsc_path_args.add_argument("--bsc-path", type = str, dest = "bsc_path")
+  bsc_path_args.add_argument("--bsc-path-aid", action = "store_const", const = "aid", dest = "bsc_path")
 
   # sub args for --build
 
@@ -310,9 +313,6 @@ def main():
 
   verbosity = options["verbosity"]
   del options["verbosity"]
-
-  # for key, value in options.items():
-  #   print("%s -- %s" % (key, value))
 
   conf_name = next(fn for fn in [options.get("new"), options.get("build"), options.get("fast")] if fn is not None)
 
