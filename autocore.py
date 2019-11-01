@@ -1,42 +1,42 @@
 #!/usr/bin/env python3
 #autocore usage:
-#  -h --help                         Print this message
+#  -h  --help                         Print this message
 #
-#  -v --verbose
-#  -q --quiet                        (default)
+#  -v  --verbose
+#  -q  --quiet                        (default)
 #
-#     Making and building configurations
+# Making and building configurations
 #
-#  -n --new      <conf_name>          Tells tool to make a new conf
-#  -f --fast     <conf_name>          Combines both --new and --build in one step
+#  -n  --new      <conf_name>          Tells tool to make a new conf
+#  -f  --fast     <conf_name>          Combines both --new and --build in one step
 #
-#     --core     <core_str>           Which core to use (Piccolo, Flute) 
-#     --arch     <arch_str>           Basic risc-v string, ex: 'rv32imac'
-#     --priv     <priv_str>           Priv levels to use,  ex: 'mu'
-#     --fabric   <32|64>              Fabric definition (default 64)
-#     --near-mem <Caches|TCM>         Near Mem as Caches or Tightly coupled memory
-#     --tv                            Enable tandem verif (default off)
-#     --db                            Enable debug module (default off)
-#     --mult     <serial|synth>       Multiplier choice, requires M extension
-#                                     synth is default
-#     --shift    <serial|barrel|mult> Shifter Choice, mult requires M
-#                                     default barrel
-#     --init-mem-zero                 Initial memory zero option (default off)
-#     --target   <target_name>        specify a makefile target
-#                                     [all (default), verilog, bsim, verilator]
-#     --top-file <path/to/file>       Specifies a new top file for bsc
-#                                     may cause simulation behavior to break
-#     --bsc-path <list:of:paths>      new colon separated list of directories to
-#                                     look into for building
+#      --core     <core_str>           Which core to use (Piccolo, Flute) 
+#      --arch     <arch_str>           Basic risc-v string, ex: 'rv32imac'
+#      --priv     <priv_str>           Priv levels to use,  ex: 'mu'
+#      --fabric   <32|64>              Fabric definition (default 64)
+#      --near-mem <Caches|TCM>         Near Mem as Caches or Tightly coupled memory
+#      --tv                            Enable tandem verif (default off)
+#      --db                            Enable debug module (default off)
+#      --mult     <serial|synth>       Multiplier choice, requires M extension
+#                                      synth is default
+#      --shift    <serial|barrel|mult> Shifter Choice, mult requires M
+#                                      default barrel
+#      --init-mem-zero                 Initial memory zero option (default off)
+#      --target   <target_name>        specify a makefile target
+#                                      [all (default), verilog, bsim, verilator]
+#      --top-file <path/to/file>       Specifies a new top file for bsc
+#                                      may cause simulation behavior to break
+#      --bsc-path <list:of:paths>      new colon separated list of directories to
+#                                      look into for building
 #
-#     Using an existing conf
+#      Using an existing conf
 #
-#  -b --build   <conf_name>           Build the proc specified by the file in
-#                                     the conf dir
+#  -b  --build   <conf_name>           Build the proc specified by the file in
+#                                      the conf dir
 #
-#     --dry-run                       Uses the conf specified by --build to
-#                                     launch a make dry run
-#     --force-target <target_name>    Forces a specific makefile target
+#      --dry-run                       Uses the conf specified by --build to
+#                                      launch a make dry run
+#      --force-target <target_name>    Forces a specific makefile target
 #                                     This overrides conf values set by --target
 
 import os, sys, argparse, subprocess
@@ -310,12 +310,27 @@ def main():
 
   conf_name = next(fn for fn in [options.get("new"), options.get("build"), options.get("fast")] if fn is not None)
 
+  # what mode does the script operate under
+  # --help managed in parse()
+  is_mode_new   = options.get("new") is not None
+  is_mode_build = options.get("build") is not None
+  is_mode_fast  = options.get("fast") is not None
+
+  # remove mode from options so it doesn't
+  # get written to conf
+  if is_mode_new:
+    del options["new"]
+  if is_mode_build:
+    del options["build"]
+  if is_mode_fast:
+    del options["fast"]
+
   # make a new configuration of a core
-  if (options.get("new") or options.get("fast")):
+  if is_mode_new or is_mode_fast:
     new_conf_build(options, here, conf_name)
 
   # make the verilog and sims defined in a configuration
-  if (options.get("build") or options.get("fast")):
+  if is_mode_build or is_mode_fast:
     build_conf = conf_filename_make(here, conf_name)
     conf_make(build_conf, options.get("dry_run"), options.get("force_target"))
 
