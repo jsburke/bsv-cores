@@ -2,9 +2,6 @@
 #autocore usage:
 #  -h  --help                         Print this message
 #
-#  -v  --verbose
-#  -q  --quiet                        (default)
-#
 # Making and building configurations
 #
 #  -n  --new      <conf_name>          Tells tool to make a new conf
@@ -56,7 +53,6 @@ targets     = ["all", "verilog", "bsim", "verilator"]
 # script controls
 
 conf_delimiter = "--"
-verbosity      = "q" # default quiet, not useful yet
 
 #############################
 ##                         ##
@@ -83,14 +79,6 @@ def parse():
   mode.add_argument("-b", "--build", type = str)
   mode.add_argument("-f", "--fast",  type = str)
   mode.add_argument("-h", "--help", action = "store_true") # put help here to avoid dumb errors
-
-  # verbosity
-
-  prog_verbose = parser.add_mutually_exclusive_group()
-
-  prog_verbose.add_argument("-v", "--verbose", action = "store_const", dest = "verbosity", const = "v")
-  prog_verbose.add_argument("-q", "--quiet", action = "store_const", dest = "verbosity", const = "q")
-  parser.set_defaults(verbosity = "q")
 
   # sub args for --new
 
@@ -136,26 +124,6 @@ def args_status_get(args, argv):
 ## Support Functions       ##
 ##                         ##
 #############################
-
-  # function to gather bitness and risc-v extensions desired
-  # input is in the form of something like 'rv32imac'
-def rv_arch_parse(rv_str):
-  xlen = rv_str[:4]
-  ext  = rv_str[4:].replace("g","imafd")
-
-  if not("i" in ext):  # I extenstion is mandatory
-    print("ERROR: RV I extension is mandatory\n")
-    sys.exit()
-
-  if (("d" in ext) and not("f" in ext)):
-    print("ERROR: RV D requires RV F\n")
-    sys.exit()
-
-  if not((xlen == "rv32") or (xlen == "rv64")):
-    print("ERROR: arch must be rv32 or rv64\n")
-    sys.exit()
-
-  return [xlen, ext]
 
   # function that will write a new config file
   # based on the cli args.  
@@ -268,9 +236,6 @@ def conf_make(filename, is_dry_run, target):
 
 def main():
   options = parse()
-
-  verbosity = options["verbosity"]
-  del options["verbosity"]
 
   conf_name = next(fn for fn in [options.get("new"), options.get("build"), options.get("fast")] if fn is not None)
 
