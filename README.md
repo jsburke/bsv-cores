@@ -17,4 +17,4 @@ The `Makefile` contains a default build in itself, an RV64 IMAC Flute with Machi
 
 ## Future Desires
 
-The `BSC_PATH` and `BSV_TOP` variables in the `Makefile` can be reassigned from the command line.  The main idea being that modifications to what Piccolo or FLute sit in or using their components for other things is desirable.  Future configuration work should allow for these to be redirected
+The `BSC_PATH` and `TOP_FILE` variables in the `Makefile` can be reassigned from the command line.  The main idea being that modifications to what Piccolo or FLute sit in or using their components for other things is desirable.  Future configuration work should allow for these to be redirected
