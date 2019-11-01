@@ -1,41 +1,45 @@
 #!/usr/bin/env python3
 #autocore usage:
-#  -h --help                         Print this message
+#  -h  --help                         Print this message
 #
-#  -v --verbose
-#  -q --quiet                        (default)
+#  -v  --verbose
+#  -q  --quiet                        (default)
 #
-#     Making and building configurations
+# Making and building configurations
 #
-#  -n --new      <conf_name>          Tells tool to make a new conf
-#  -f --fast     <conf_name>          Combines both --new and --build in one step
+#  -n  --new      <conf_name>          Tells tool to make a new conf
+#  -f  --fast     <conf_name>          Combines both --new and --build in one step
 #
-#     --core     <core_str>           Which core to use (Piccolo, Flute) 
-#     --arch     <arch_str>           Basic risc-v string, ex: 'rv32imac'
-#     --priv     <priv_str>           Priv levels to use,  ex: 'mu'
-#     --fabric   [32|64]              Fabric definition (default 64)
-#     --near_mem [Caches|TCM]         Near Mem as Caches or Tightly coupled memory
-#     --tv                            Enable tandem verif (default off)
-#     --db                            Enable debug module (default off)
-#     --mult     [serial|synth]       Multiplier choice, requires M extension
-#                                     synth is default
-#     --shift    [serial|barrel|mult] Shifter Choice, mult requires M
-#                                     default barrel
-#     --init-mem-zero                 Initial memory zero option (default off)
-#     --target  <target_name>         specify a makefile target
-#                                     [all (default), verilog, bsim, verilator]
+#      --core     <core_str>           Which core to use (Piccolo, Flute) 
+#      --arch     <arch_str>           Basic risc-v string, ex: 'rv32imac'
+#      --priv     <priv_str>           Priv levels to use,  ex: 'mu'
+#      --fabric   <32|64>              Fabric definition (default 64)
+#      --near-mem <Caches|TCM>         Near Mem as Caches or Tightly coupled memory
+#      --tv                            Enable tandem verif (default off)
+#      --db                            Enable debug module (default off)
+#      --mult     <serial|synth>       Multiplier choice, requires M extension
+#                                      synth is default
+#      --shift    <serial|barrel|mult> Shifter Choice, mult requires M
+#                                      default barrel
+#      --init-mem-zero                 Initial memory zero option (default off)
+#      --target   <target_name>        specify a makefile target
+#                                      [all (default), verilog, bsim, verilator]
+#      --top-file <path/to/file>       Specifies a new top file for bsc
+#                                      may cause simulation behavior to break
+#      --bsc-path <list:of:paths>      new colon separated list of directories to
+#                                      look into for building
 #
-#     Using an existing conf
+#      Using an existing conf
 #
-#  -b --build   <conf_name>           Build the proc specified by the file in
-#                                     the conf dir
+#  -b  --build   <conf_name>           Build the proc specified by the file in
+#                                      the conf dir
 #
-#     --dry-run                       Uses the conf specified by --build to
-#                                     launch a make dry run
-#     --force-target <target_name>    Forces a specific makefile target
+#      --dry-run                       Uses the conf specified by --build to
+#                                      launch a make dry run
+#      --force-target <target_name>    Forces a specific makefile target
 #                                     This overrides conf values set by --target
 
-import os, sys, argparse
+import os, sys, argparse, subprocess
 
 here =  os.path.abspath(os.path.dirname(sys.argv[0]))
 
@@ -43,11 +47,16 @@ here =  os.path.abspath(os.path.dirname(sys.argv[0]))
 
 cores       = ["Piccolo", "Flute"]
 privs       = ["m", "mu", "msu"]
-fabrics     = [32, 64]
+fabrics     = ["FABRIC32", "FABRIC64"]
 multipliers = ["serial", "synth"]
 shifters    = ["serial", "barrel", "mult"]
 near_mems   = ["Caches", "TCM"]
 targets     = ["all", "verilog", "bsim", "verilator"]
+
+# script controls
+
+conf_delimiter = "--"
+verbosity      = "q" # default quiet, not useful yet
 
 #############################
 ##                         ##
@@ -88,29 +97,39 @@ def parse():
   parser.add_argument("--core", choices = cores, type = str)
   parser.add_argument("--arch", type = str)
   parser.add_argument("--priv", choices = privs, type = str)
-  parser.add_argument("--fabric", choices = fabrics, type = int)
+  parser.add_argument("--fabric", choices = fabrics, type = str)
   parser.add_argument("--tv", action = "store_true")
   parser.add_argument("--db", action = "store_true")
-  parser.add_argument("--init-mem-zero", action = "store_true", dest = "mem_zero")
+  parser.add_argument("--init-mem-zero", action = "store_true")
   parser.add_argument("--mult", choices = multipliers, type = str)
   parser.add_argument("--shift", choices = shifters, type = str)
-  parser.add_argument("--near_mem", choices = near_mems, type = str)
+  parser.add_argument("--near-mem", choices = near_mems, type = str)
   parser.add_argument("--target", choices = targets, type = str)
-  parser.set_defaults(mult  = "synth")
-  parser.set_defaults(shift = "barrel")
-  parser.set_defaults(near_mem = "Caches")
+  parser.add_argument("--top-file", type = str)
+  parser.add_argument("--bsc-path", type = str)
 
   # sub args for --build
 
-  parser.add_argument("--dry-run", action = "store_true", dest = "dry_run")
-  parser.add_argument("--force-target", type = str, dest = "force_target")
+  parser.add_argument("--dry-run", action = "store_true")
+  parser.add_argument("--force-target", choices = targets, type = str)
 
   options     = parser.parse_args()
 
   if options.help:
     parser.error()
   else:
-    return options
+    return args_status_get(options, sys.argv) # dict of (argparse-dest, value given)
+
+def args_status_get(args, argv):
+  args_dict = {}
+  for arg in vars(args):
+    arg_value = getattr(args, arg)
+    arg_tuple = (arg, arg_value)
+    
+    is_arg_used = True if (("--" + arg.replace("_","-") in argv) or (arg_value not in [None, False])) else False
+    if is_arg_used:
+      args_dict.update({arg : arg_value})
+  return args_dict
 
 #############################
 ##                         ##
@@ -140,42 +159,11 @@ def rv_arch_parse(rv_str):
 
   # function that will write a new config file
   # based on the cli args.  
-def new_conf_build(options, path, conf_name):
-  core        = options.core
-  [xlen, ext] = rv_arch_parse(options.arch.lower())
-  privs       = options.priv
-  fabric      = 64 if not options.fabric else options.fabric
-  tv          = "on" if options.tv       else "off"
-  db          = "on" if options.db       else "off"
-  mem_zero    = "on" if options.mem_zero else "off"
-  multiply    = options.mult
-  shifter     = options.shift
-  near_mem    = options.near_mem
-  target      = options.target
-
-  if not core:
-    print("Error: a core must be specified with --core")
-    sys.exit()
-
-  if not privs:
-    print("Error: a privilidge scheme must be defined with --priv")
-    sys.exit()
-
-  new_conf = conf_filename_make(path, conf_name)
-
-  fp = open(new_conf, "w+")
-
-  fp.write("core:%s\n"   % core)
-  fp.write("arch:%s\n"   % xlen)
-  fp.write("ext:%s\n"    % ext)
-  fp.write("priv:%s\n"   % privs)
-  fp.write("fabric:%d\n" % fabric)
-  fp.write("mult:%s\n"   % multiply)
-  fp.write("shift:%s\n"  % shifter)
-  fp.write("tv:%s\n"     % tv)
-  fp.write("db:%s\n"     % db)
-  fp.write("mem_zero:%s" % mem_zero)
-  fp.write("target:%s"   % target)
+def new_conf_build(options, conf_file):
+  fp = open(conf_file, "w+")
+  
+  for key, value in options.items():
+    fp.write("%s%s%s\n" % (key, conf_delimiter, value))
 
   fp.close()
 
@@ -191,91 +179,60 @@ def conf_filename_make(path, conf_str):
   # function to read a conf file and transform it
   # into a string that make can consume on the command line
 def conf_line_parse(line, ignore_target):
-  [key, value] = line.rstrip().split(':')
+  [key, value] = line.rstrip().split(conf_delimiter)
   make_line = ' '
 
-  if key == 'ext':
-    make_line += 'EXT="'
-    for letter in value:
-      if letter not in 'imafdc':
-        print('Error: %s not a valid extension, should be from imafdc\n' % letter)
-        sys.exit()
-      else:
-        make_line += '-D ISA_' + letter.upper() + ' '
-    make_line += '"'
-  elif key == 'priv':
-    make_line += 'PRIV="'
-    for letter in value:
-      if letter not in 'msu':
-        print('Error: %s not a valid priv, should be from msu\n' % letter)
-        sys.exit()
-      else:
-        make_line += '-D ISA_PRIV_' + letter.upper() + ' '
-    make_line += '"'
-  elif key == 'fabric':
-    if value in ['32', '64']:
-      make_line += 'FABRIC="-D FABRIC' + value + '"'
-    else:
-      print('Error: %s not a valid fabric size, should be 32 or 64\n' % value)
-      sys.exit()
+  ###################################
+  ##                               ##
+  ## Parse by key as needed        ##
+  ##                               ##
+  ###################################
+
+  if (key == 'target'):
+    if not ignore_target: # nest to avoid issues on else portion
+      make_line += value
+
+  # CORE FABRIC BSC_PATH and TOP_FILE
+  elif key in ["core", "fabric", "top_file", "bsc_path"]:
+    make_line += key.upper() + '=-D"' + value + '"'
+
+  # ARCH and EXT
   elif key == 'arch':
-    if value in ['rv32', 'rv64']:
-      make_line += 'ARCH="-D ' + value.upper() + '"'
-    else:
-      print('Error: %s not a valid architecture, should be rv32 or rv64\n' % value)
-      sys.exit()
-  elif key == 'core':
-    if value not in cores:
-      print('Error: %s not a valid core, should be Piccolo or Flute\n' % value)
-      sys.exit()
-    else:
-      make_line += 'CORE="' + value + '"'
-  elif key == 'mult':
-    if value not in multipliers: 
-      print('Error: %s not a valid multiplier, should be synth or serial\n' % value)
-      sys.exit()
-    else:
-      make_line += 'MUL="-D ' + value.upper() + '"'
-  elif key == 'shift':
-    if value not in shifters: 
-      print('Error: %s not a valid multiplier, should be synth ,serial, or barrel\n' % value)
-      sys.exit()
-    else:
-      make_line += 'SHIFT="-D ' + value.upper() + '"'
-  elif key == 'near_mem':
-    if value not in near_mems:
-      print('Error: %s not a valid near mem, should be Caches or TCM\n' % value)
-      sys.exit()
-    else:
-      make_line += 'NEAR_MEM="-D Near_Mem_' + value + '"'
+    make_line += 'ARCH=-D"' + value[:4].upper() + '" EXT=-D"'
+
+    exts = value[4:].replace('g','imafd').upper() 
+    for ext in exts:
+      make_line += ' ISA_' + ext
+
+    make_line += '"'
+
+  # PRIV
+  elif key == "priv":
+    make_line += 'PRIV=-D"'
+    for priv in value:
+      make_line += ' ISA_PRIV_' + priv.upper()
+    make_line += '"'
+
+  # MULT and SHIFT
+  elif key in ["mult", "shift"]:
+    make_line += key.upper() + '=-D"' + key.upper() + '_' + value.upper() + '"'
+
+  # NEAR MEM
+  elif key == "near_mem":
+    make_line += 'NEAR_MEM=-D"Near_Mem_' + value + '"'
+
   elif key == 'tv':
-    if value not in ['on', 'off']:
-      print('Error: %s not valid for tandem verif, should be on or off\n' % value)
-      sys.exit()
-    else:
-      prefix = 'INCLUDE' if value is 'on' else 'EXCLUDE'
-      make_line += 'TV="-D ' + prefix + '_TANDEM_VERIF"'
+      prefix = "INCLUDE" if value == 'True' else "EXCLUDE"
+      make_line += 'TV=-D" ' + prefix + '_TANDEM_VERIF"'
+
   elif key == 'db':
-    if value not in ['on', 'off']:
-      print('Error: %s not valid for debug, should be on or off\n' % value)
-      sys.exit()
-    else:
-      prefix = 'INCLUDE' if value is 'on' else 'EXCLUDE'
-      make_line += 'DEBUG="-D ' + prefix + '_GDB_CONTROL"'
-  elif key == 'mem_zero':
-    if value not in ['on', 'off']:
-      print('Error: %s not valid for initializing memory, should be on or off\n' % value)
-      sys.exit()
-    else:
-      prefix = 'INCLUDE' if value is 'on' else 'EXCLUDE'
-      make_line += 'MEM_ZERO="-D ' + prefix + '_INITIAL_MEMZERO"'
-  elif key == 'target':
-    if not ignore_target:
-      if value not in targets:
-        print('Error: %s is not a valid make target, should be all, verilog, verilator, or bsim\n' % value)
-        sys.exit()
-      else:
-        make_line += " " + value
+      prefix = "INCLUDE" if value == 'True' else "EXCLUDE"
+      make_line += 'DEBUG=-D" ' + prefix + '_GDB_CONTROL"'
+
+  elif key == 'init_mem_zero':
+      prefix = "INCLUDE" if value == 'True' else "EXCLUDE"
+      make_line += 'MEM_ZERO=-D" ' + prefix + '_INITIAL_MEMZERO"'
+
   else:
     print('Error: key %s not recognized' % key)
     sys.exit()
@@ -312,15 +269,34 @@ def conf_make(filename, is_dry_run, target):
 def main():
   options = parse()
 
-  conf_name = next(fn for fn in [options.new, options.build, options.fast] if fn is not None)
+  verbosity = options["verbosity"]
+  del options["verbosity"]
+
+  conf_name = next(fn for fn in [options.get("new"), options.get("build"), options.get("fast")] if fn is not None)
+
+  # what mode does the script operate under
+  # --help managed in parse()
+  is_mode_new   = options.get("new") is not None
+  is_mode_build = options.get("build") is not None
+  is_mode_fast  = options.get("fast") is not None
+
+  # remove mode from options so it doesn't
+  # get written to conf
+  if is_mode_new:
+    del options["new"]
+  if is_mode_build:
+    del options["build"]
+  if is_mode_fast:
+    del options["fast"]
+
+  conf_file = conf_filename_make(here, conf_name)
 
   # make a new configuration of a core
-  if (options.new or options.fast):
-    new_conf_build(options, here, conf_name)
+  if is_mode_new or is_mode_fast:
+    new_conf_build(options, conf_file)
 
   # make the verilog and sims defined in a configuration
-  if (options.build or options.fast):
-    build_conf = conf_filename_make(here, conf_name)
-    conf_make(build_conf, options.dry_run, options.force_target)
+  if is_mode_build or is_mode_fast:
+    conf_make(conf_file, options.get("dry_run"), options.get("force_target"))
 
 main()
