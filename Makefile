@@ -100,7 +100,7 @@ BSC_RTS        = +RTS -K128M -RTS
 
 BSC_PATH      ?= -p $(UPSTREAM_SRC)/CPU/Common:$(UPSTREAM_SRC)/CPU/$(CORE):$(UPSTREAM_SRC)/BSV_Additional_Libs:$(UPSTREAM_SRC)/Core:$(UPSTREAM_SRC)/Debug_Module:$(UPSTREAM_SRC)/ISA:$(UPSTREAM_SRC)/Near_Mem_IO:$(UPSTREAM_SRC)/Near_Mem_VM:$(UPSTREAM_SRC)/PLIC:$(UPSTREAM_SRC)/RegFiles:$(UPSTREAM_SRC)/SoC:$(UPSTREAM_SRC)/Top:$(UPSTREAM_SRC)/Fabrics/Adapters:$(UPSTREAM_SRC)/Fabrics/AXI4:$(UPSTREAM_SRC)/Fabrics/AXI4_Lite:+
 
-BSV_TOP       ?= $(UPSTREAM_SRC)/Top/Top_HW_Side.bsv
+TOP_FILE       ?= $(UPSTREAM_SRC)/Top/Top_HW_Side.bsv
 BSIM_EXE       = $(INST_DIR)/bsim 
 
 #################################################
@@ -182,7 +182,7 @@ help:
 
 .PHONY: compile-%
 compile-%: submodules $(INST_DIR)
-	bsc -u -elab -$* $(BSC_DIRS) $(CORE_DEFINES) $(BSC_OPTS) $(BSC_DONT_WARN) $(BSC_RTS) $(BSC_PATH) $(BSV_TOP)
+	bsc -u -elab -$* $(BSC_DIRS) $(CORE_DEFINES) $(BSC_OPTS) $(BSC_DONT_WARN) $(BSC_RTS) $(BSC_PATH) $(TOP_FILE)
 
 .PHONY: bsim
 bsim: $(BSIM_EXE)

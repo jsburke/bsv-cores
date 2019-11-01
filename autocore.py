@@ -47,7 +47,7 @@ here =  os.path.abspath(os.path.dirname(sys.argv[0]))
 
 cores       = ["Piccolo", "Flute"]
 privs       = ["m", "mu", "msu"]
-fabrics     = [32, 64]
+fabrics     = ["FABRIC32", "FABRIC64"]
 multipliers = ["serial", "synth"]
 shifters    = ["serial", "barrel", "mult"]
 near_mems   = ["Caches", "TCM"]
@@ -97,7 +97,7 @@ def parse():
   parser.add_argument("--core", choices = cores, type = str)
   parser.add_argument("--arch", type = str)
   parser.add_argument("--priv", choices = privs, type = str)
-  parser.add_argument("--fabric", choices = fabrics, type = int)
+  parser.add_argument("--fabric", choices = fabrics, type = str)
   parser.add_argument("--tv", action = "store_true")
   parser.add_argument("--db", action = "store_true")
   parser.add_argument("--init-mem-zero", action = "store_true")
@@ -110,8 +110,8 @@ def parse():
 
   # sub args for --build
 
-  parser.add_argument("--dry-run", action = "store_true")#, dest = "dry_run")
-  parser.add_argument("--force-target", type = str)#, dest = "force_target")
+  parser.add_argument("--dry-run", action = "store_true")
+  parser.add_argument("--force-target", choices = targets, type = str)
 
   options     = parser.parse_args()
 
@@ -182,93 +182,57 @@ def conf_line_parse(line, ignore_target):
   [key, value] = line.rstrip().split(conf_delimiter)
   make_line = ' '
 
-  if key == 'ext':
-    make_line += 'EXT="'
-    for letter in value:
-      if letter not in 'imafdc':
-        print('Error: %s not a valid extension, should be from imafdc\n' % letter)
-        sys.exit()
-      else:
-        make_line += '-D ISA_' + letter.upper() + ' '
-    make_line += '"'
-  elif key == 'priv':
-    make_line += 'PRIV="'
-    for letter in value:
-      if letter not in 'msu':
-        print('Error: %s not a valid priv, should be from msu\n' % letter)
-        sys.exit()
-      else:
-        make_line += '-D ISA_PRIV_' + letter.upper() + ' '
-    make_line += '"'
-  elif key == 'fabric':
-    if value in ['32', '64']:
-      make_line += 'FABRIC="-D FABRIC' + value + '"'
-    else:
-      print('Error: %s not a valid fabric size, should be 32 or 64\n' % value)
-      sys.exit()
+  ###################################
+  ##                               ##
+  ## Parse by key as needed        ##
+  ##                               ##
+  ###################################
+
+  if (key == 'target'):
+    if not ignore_target: # nest to avoid issues on else portion
+      make_line += value
+
+  # CORE FABRIC BSC_PATH and TOP_FILE
+  elif key in ["core", "fabric", "top_file", "bsc_path"]:
+    make_line += key.upper() + '=-D"' + value + '"'
+
+  # ARCH and EXT
   elif key == 'arch':
-    if value in ['rv32', 'rv64']:
-      make_line += 'ARCH="-D ' + value.upper() + '"'
-    else:
-      print('Error: %s not a valid architecture, should be rv32 or rv64\n' % value)
-      sys.exit()
-  elif key == 'core':
-    if value not in cores:
-      print('Error: %s not a valid core, should be Piccolo or Flute\n' % value)
-      sys.exit()
-    else:
-      make_line += 'CORE="' + value + '"'
-  elif key == 'mult':
-    if value not in multipliers: 
-      print('Error: %s not a valid multiplier, should be synth or serial\n' % value)
-      sys.exit()
-    else:
-      make_line += 'MUL="-D ' + value.upper() + '"'
-  elif key == 'shift':
-    if value not in shifters: 
-      print('Error: %s not a valid multiplier, should be synth ,serial, or barrel\n' % value)
-      sys.exit()
-    else:
-      make_line += 'SHIFT="-D ' + value.upper() + '"'
-  elif key == 'near_mem':
-    if value not in near_mems:
-      print('Error: %s not a valid near mem, should be Caches or TCM\n' % value)
-      sys.exit()
-    else:
-      make_line += 'NEAR_MEM="-D Near_Mem_' + value + '"'
+    make_line += 'ARCH=-D"' + value[:4].upper() + '" EXT=-D"'
+
+    exts = value[4:].replace('g','imafd').upper() 
+    for ext in exts:
+      make_line += ' ISA_' + ext
+
+    make_line += '"'
+
+  # PRIV
+  elif key == "priv":
+    make_line += 'PRIV=-D"'
+    for priv in value:
+      make_line += ' ISA_PRIV_' + priv.upper()
+    make_line += '"'
+
+  # MULT and SHIFT
+  elif key in ["mult", "shift"]:
+    make_line += key.upper() + '=-D"' + key.upper() + '_' + value.upper() + '"'
+
+  # NEAR MEM
+  elif key == "near_mem":
+    make_line += 'NEAR_MEM=-D"Near_Mem_' + value + '"'
+
   elif key == 'tv':
-    if value not in ['on', 'off']:
-      print('Error: %s not valid for tandem verif, should be on or off\n' % value)
-      sys.exit()
-    else:
-      prefix = 'INCLUDE' if value is 'on' else 'EXCLUDE'
-      make_line += 'TV="-D ' + prefix + '_TANDEM_VERIF"'
+      prefix = "INCLUDE" if value == 'True' else "EXCLUDE"
+      make_line += 'TV=-D" ' + prefix + '_TANDEM_VERIF"'
+
   elif key == 'db':
-    if value not in ['on', 'off']:
-      print('Error: %s not valid for debug, should be on or off\n' % value)
-      sys.exit()
-    else:
-      prefix = 'INCLUDE' if value is 'on' else 'EXCLUDE'
-      make_line += 'DEBUG="-D ' + prefix + '_GDB_CONTROL"'
+      prefix = "INCLUDE" if value == 'True' else "EXCLUDE"
+      make_line += 'DEBUG=-D" ' + prefix + '_GDB_CONTROL"'
+
   elif key == 'init_mem_zero':
-    if value not in ['on', 'off']:
-      print('Error: %s not valid for initializing memory, should be on or off\n' % value)
-      sys.exit()
-    else:
-      prefix = 'INCLUDE' if value is 'on' else 'EXCLUDE'
-      make_line += 'MEM_ZERO="-D ' + prefix + '_INITIAL_MEMZERO"'
-  elif key == 'target':
-    if not ignore_target:
-      if value not in targets:
-        print('Error: %s is not a valid make target, should be all, verilog, verilator, or bsim\n' % value)
-        sys.exit()
-      else:
-        make_line += " " + value
-  elif key == 'top_file':
-    if value != "None":
-      make_line += 'BSV_TOP="' + value +'"'
-  elif key == 'bsc_path':
-    make_line += 'BSC_PATH="-p ' + value + '"'
+      prefix = "INCLUDE" if value == 'True' else "EXCLUDE"
+      make_line += 'MEM_ZERO=-D" ' + prefix + '_INITIAL_MEMZERO"'
+
   else:
     print('Error: key %s not recognized' % key)
     sys.exit()
