@@ -159,8 +159,8 @@ def rv_arch_parse(rv_str):
 
   # function that will write a new config file
   # based on the cli args.  
-def new_conf_build(options, path, conf_name):
-  fp = open(conf_filename_make(path, conf_name), "w+")
+def new_conf_build(options, conf_file):
+  fp = open(conf_file, "w+")
   
   for key, value in options.items():
     fp.write("%s%s%s\n" % (key, conf_delimiter, value))
@@ -325,13 +325,14 @@ def main():
   if is_mode_fast:
     del options["fast"]
 
+  conf_file = conf_filename_make(here, conf_name)
+
   # make a new configuration of a core
   if is_mode_new or is_mode_fast:
-    new_conf_build(options, here, conf_name)
+    new_conf_build(options, conf_file)
 
   # make the verilog and sims defined in a configuration
   if is_mode_build or is_mode_fast:
-    build_conf = conf_filename_make(here, conf_name)
-    conf_make(build_conf, options.get("dry_run"), options.get("force_target"))
+    conf_make(conf_file, options.get("dry_run"), options.get("force_target"))
 
 main()
