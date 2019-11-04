@@ -161,33 +161,38 @@ def conf_line_parse(line, ignore_target):
       make_line += value
 
   # CORE FABRIC BSC_PATH and TOP_FILE
-  elif key in ["core", "fabric", "top_file", "bsc_path"]:
-    make_line += key.upper() + '=-D"' + value + '"'
+  elif key in ["core", "fabric", "top_file"]:
+    make_line += key.upper() + '=-D" ' + value + '"'
+
+  # BSC_PATH is a little different
+  elif key == 'bsc_path':
+    path_ender = ':+' if not value.endswith(':+') else ''
+    make_line += 'BSC_PATH="-p ' + value + path_ender +'"'
 
   # ARCH and EXT
   elif key == 'arch':
-    make_line += 'ARCH=-D"' + value[:4].upper() + '" EXT=-D"'
+    make_line += 'ARCH=-D" ' + value[:4].upper() + '" EXT="'
 
     exts = value[4:].replace('g','imafd').upper() 
     for ext in exts:
-      make_line += ' ISA_' + ext
+      make_line += ' -D ISA_' + ext
 
     make_line += '"'
 
   # PRIV
   elif key == "priv":
-    make_line += 'PRIV=-D"'
+    make_line += 'PRIV=" '
     for priv in value:
-      make_line += ' ISA_PRIV_' + priv.upper()
+      make_line += ' -D ISA_PRIV_' + priv.upper()
     make_line += '"'
 
   # MULT and SHIFT
   elif key in ["mult", "shift"]:
-    make_line += key.upper() + '=-D"' + key.upper() + '_' + value.upper() + '"'
+    make_line += key.upper() + '=-D" ' + key.upper() + '_' + value.upper() + '"'
 
   # NEAR MEM
   elif key == "near_mem":
-    make_line += 'NEAR_MEM=-D"Near_Mem_' + value + '"'
+    make_line += 'NEAR_MEM=-D" Near_Mem_' + value + '"'
 
   elif key == 'tv':
       prefix = "INCLUDE" if value == 'True' else "EXCLUDE"
