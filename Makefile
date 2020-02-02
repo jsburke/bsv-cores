@@ -73,10 +73,9 @@ CORE_DEFINES = $(ARCH) $(FABRIC) $(EXT) $(PRIV) $(NEAR_MEM) $(TV) $(DEBUG) $(MEM
 ##                                             ##
 #################################################
 
-UPSTREAM     = ./upstream
-UPSTREAM_SRC = $(UPSTREAM)/src
-FLUTE_DIR    = $(UPSTREAM_SRC)/Flute
-PICCOLO_DIR  = $(UPSTREAM_SRC)/Piccolo
+SRC          = ./src
+FLUTE_DIR    = $(SRC)/Flute
+PICCOLO_DIR  = $(SRC)/Piccolo
 
 BUILD_DIR    = ./build
 INST_DIR     = $(BUILD_DIR)/$(INSTANCE)
@@ -98,9 +97,9 @@ BSC_OPTS       = -keep-fires -aggressive-conditions -no-warn-action-shadowing -n
 BSC_DONT_WARN  = -suppress-warnings G0020
 BSC_RTS        = +RTS -K128M -RTS
 
-BSC_PATH      ?= -p $(UPSTREAM_SRC)/CPU/Common:$(UPSTREAM_SRC)/CPU/$(CORE):$(UPSTREAM_SRC)/BSV_Additional_Libs:$(UPSTREAM_SRC)/Core:$(UPSTREAM_SRC)/Debug_Module:$(UPSTREAM_SRC)/ISA:$(UPSTREAM_SRC)/Near_Mem_IO:$(UPSTREAM_SRC)/Near_Mem_VM:$(UPSTREAM_SRC)/PLIC:$(UPSTREAM_SRC)/RegFiles:$(UPSTREAM_SRC)/SoC:$(UPSTREAM_SRC)/Top:$(UPSTREAM_SRC)/Fabrics/Adapters:$(UPSTREAM_SRC)/Fabrics/AXI4:$(UPSTREAM_SRC)/Fabrics/AXI4_Lite:+
+BSC_PATH      ?= -p $(SRC)/CPU/Common:$(SRC)/CPU/$(CORE):$(SRC)/BSV_Additional_Libs:$(SRC)/Core:$(SRC)/Debug_Module:$(SRC)/ISA:$(SRC)/Near_Mem_IO:$(SRC)/Near_Mem_VM:$(SRC)/PLIC:$(SRC)/RegFiles:$(SRC)/SoC:$(SRC)/Top:$(SRC)/Fabrics/Adapters:$(SRC)/Fabrics/AXI4:$(SRC)/Fabrics/AXI4_Lite:+
 
-TOP_FILE       ?= $(UPSTREAM_SRC)/Top/Top_HW_Side.bsv
+TOP_FILE       ?= $(SRC)/Top/Top_HW_Side.bsv
 BSIM_EXE       = $(INST_DIR)/bsim 
 
 #################################################
@@ -109,7 +108,7 @@ BSIM_EXE       = $(INST_DIR)/bsim
 ##                                             ##
 #################################################
 
-VERILATOR_RSC = $(UPSTREAM_SRC)/Verilator
+VERILATOR_RSC = $(SRC)/Verilator
 VERILATOR_OBJ = $(INST_DIR)/obj_dir
 VSIM_EXE      = $(INST_DIR)/vsim
 
@@ -187,7 +186,7 @@ compile-%: submodules $(INST_DIR)
 .PHONY: bsim
 bsim: $(BSIM_EXE)
 $(BSIM_EXE): compile-sim
-	bsc -sim -parallel-sim-link 8 $(BSC_DIRS) -e mkTop_HW_Side -o $(BSIM_EXE) -Xc++  -D_GLIBCXX_USE_CXX11_ABI=0 -Xl -v -Xc -O3 -Xc++ -O3 $(UPSTREAM_SRC)/Top/C_Imported_Functions.c
+	bsc -sim -parallel-sim-link 8 $(BSC_DIRS) -e mkTop_HW_Side -o $(BSIM_EXE) -Xc++  -D_GLIBCXX_USE_CXX11_ABI=0 -Xl -v -Xc -O3 -Xc++ -O3 $(SRC)/Top/C_Imported_Functions.c
 
 .PHONY: verilog
 verilog: compile-verilog
@@ -199,7 +198,7 @@ $(VSIM_EXE): compile-verilog
 	cat $(VERILATOR_RSC)/verilator_config.vlt $(VERILATOR_RSC)/import_DPI_C_decls.v tmp.v > $(BSV_VERILOG)/mkTop_HW_Side_edited.v
 	rm -f tmp.v
 	cd $(INST_DIR) && verilator -I./verilog -I../../upstream/src/Lib_Verilog --stats -O3 -CFLAGS -O3 -LDFLAGS -static --x-assign fast --x-initial fast --noassert --cc ./verilog/mkTop_HW_Side_edited.v --exe sim_main.cpp ../../upstream/src/Top/C_Imported_Functions.c
-	cp $(UPSTREAM_SRC)/Verilator/sim_main.cpp $(VERILATOR_OBJ)/sim_main.cpp
+	cp $(SRC)/Verilator/sim_main.cpp $(VERILATOR_OBJ)/sim_main.cpp
 	cd $(VERILATOR_OBJ) && make -j -f VmkTop_HW_Side_edited.mk VmkTop_HW_Side_edited
 	cp $(VERILATOR_OBJ)/VmkTop_HW_Side_edited $(VSIM_EXE)
 
