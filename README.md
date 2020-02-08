@@ -1,6 +1,6 @@
 # bsv-cores
 
-Project that aims to make configuring, modifying, and leveraging BlueSpec's open source Piccolo and Flute RISC-V cores simple and easy.  Rebuilding anything here will require their bluespec compiler `bsc`, though pregenerated verilog is available in the submodules.  One goal of this repo is storing various ways of building these cores in small config files so that people don't have to muck in the Makefiles or bluespec source code.
+Project that aims to make configuring, modifying, and leveraging BlueSpec's open source Piccolo and Flute RISC-V cores simple and easy.  Rebuilding anything here will require the bluespec compiler `bsc`, though pregenerated verilog is available in the submodules.  One goal of this repo is storing various ways of building these cores in small config files so that people don't have to muck in the Makefiles or bluespec source code.
 
 ## Use at a high level
 
@@ -14,6 +14,14 @@ The `Makefile` contains a default build in itself, an RV64 IMAC Flute with Machi
 - `autocore.py` : Noted above, used to make and build configs
 - `./conf`      : where the configs are stored, comes with `example.conf`
 - `./upstream`  : where the bluespec submodules and symlinks into them are set up.  Builds look here for bsv
+
+## Dependencies
+
+- [bsc](https://github.com/B-Lang-org/bsc) : The BlueSpec Verilog Compiler
+- verilator
+- gcc/g++
+- Python 3  :  Modules used -- os, sys, argparse, and subprocess
+- Make 
 
 ## Future Desires
 
