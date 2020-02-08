@@ -197,7 +197,7 @@ $(VSIM_EXE): compile-verilog
 	sed -f $(VERILATOR_RSC)/sed_script.txt $(BSV_VERILOG)/mkTop_HW_Side.v > tmp.v
 	cat $(VERILATOR_RSC)/verilator_config.vlt $(VERILATOR_RSC)/import_DPI_C_decls.v tmp.v > $(BSV_VERILOG)/mkTop_HW_Side_edited.v
 	rm -f tmp.v
-	cd $(INST_DIR) && verilator -I./verilog -I../../upstream/src/Lib_Verilog --stats -O3 -CFLAGS -O3 -LDFLAGS -static --x-assign fast --x-initial fast --noassert --cc ./verilog/mkTop_HW_Side_edited.v --exe sim_main.cpp ../../upstream/src/Top/C_Imported_Functions.c
+	cd $(INST_DIR) && verilator -I./verilog -I../../src/Lib_Verilog --stats -O3 -CFLAGS -O3 -LDFLAGS -static --x-assign fast --x-initial fast --noassert --cc ./verilog/mkTop_HW_Side_edited.v --exe sim_main.cpp ../../src/Top/C_Imported_Functions.c
 	cp $(SRC)/Verilator/sim_main.cpp $(VERILATOR_OBJ)/sim_main.cpp
 	cd $(VERILATOR_OBJ) && make -j -f VmkTop_HW_Side_edited.mk VmkTop_HW_Side_edited
 	cp $(VERILATOR_OBJ)/VmkTop_HW_Side_edited $(VSIM_EXE)
