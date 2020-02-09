@@ -19,6 +19,7 @@ The `Makefile` contains a default build in itself, an RV64 IMAC Flute with Machi
 
 - [bsc](https://github.com/B-Lang-org/bsc) : The BlueSpec Verilog Compiler
 - verilator
+- iverilog
 - gcc/g++
 - Python 3  :  Modules used -- os, sys, argparse, and subprocess
 - Make 

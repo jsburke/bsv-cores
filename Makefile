@@ -114,6 +114,14 @@ VSIM_EXE      = $(INST_DIR)/vsim
 
 #################################################
 ##                                             ##
+##  Iverilog Compile Controls                  ##
+##                                             ##
+#################################################
+
+IVSIM_EXE     = $(INST_DIR)/ivsim
+
+#################################################
+##                                             ##
 ##  Utility Targets                            ##
 ##                                             ##
 #################################################
@@ -202,8 +210,13 @@ $(VSIM_EXE): compile-verilog
 	cd $(VERILATOR_OBJ) && make -j -f VmkTop_HW_Side_edited.mk VmkTop_HW_Side_edited
 	cp $(VERILATOR_OBJ)/VmkTop_HW_Side_edited $(VSIM_EXE)
 
+.PHONY: iverilog
+iverilog: $(IVSIM_EXE)
+$(IVSIM_EXE): compile-verilog
+	iverilog -o $(IVSIM_EXE) -y $(BSV_VERILOG) -y src/Lib_Verilog -DTOP=mkTop_HW_Side src/Lib_Verilog/main.v
+
 .PHONY: sims
-sims: bsim verilator
+sims: bsim verilator iverilog
 
 .PHONY: rebuild
 rebuild: clean all
