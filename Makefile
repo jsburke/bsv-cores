@@ -7,6 +7,13 @@
 SPACE :=
 SPACE += 
 
+ifeq ($(OS),Linux)
+  NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
+endif
+ifeq ($(OS),Darwin)
+  NPROCS:=$(shell system_profiler | awk '/Number Of CPUs/{print $4}{next;}')
+endif
+
 #################################################
 ##                                             ##
 ##  Core Controls                              ##
@@ -124,6 +131,17 @@ IVSIM_EXE     = $(INST_DIR)/ivsim
 
 #################################################
 ##                                             ##
+##  Software Build Controls                    ##
+##                                             ##
+#################################################
+
+SW            = ./sw
+RV_TESTS      = $(SW)/riscv-tests
+ISA_TESTS     = $(RV_TESTS)/isa
+BENCHMARKS    = $(RV_TESTS)/benchmarks
+
+#################################################
+##                                             ##
 ##  Utility Targets                            ##
 ##                                             ##
 #################################################
@@ -142,6 +160,11 @@ submodules:
 
 $(INST_DIR):
 	@mkdir -p $(BSV_BUILD) $(BSV_VERILOG) $(BSV_INFO) $(BSV_SIM) $(VERILATOR_OBJ)
+
+.PHONY: tests
+tests: submodules
+	$(MAKE) -C $(ISA_TESTS)  -j$(NPROC)
+	$(MAKE) -C $(BENCHMARKS) -j$(NPROC)
 
 .PHONY: clean
 clean:
