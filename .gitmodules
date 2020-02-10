@@ -4,3 +4,6 @@
 [submodule "upstream-bsv/Flute"]
 	path = upstream/Flute
 	url = https://github.com/jsburke/Flute
+[submodule "tests"]
+	path = tests
+	url = https://github.com/riscv/riscv-tests
