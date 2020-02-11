@@ -140,6 +140,9 @@ RV_TESTS      = $(SW)/riscv-tests
 ISA_TESTS     = $(RV_TESTS)/isa
 BENCHMARKS    = $(RV_TESTS)/benchmarks
 
+TOOLS         = ./tools
+TOOLS_BUILD   = $(TOOLS)/build
+
 #################################################
 ##                                             ##
 ##  Utility Targets                            ##
@@ -161,14 +164,21 @@ submodules:
 $(INST_DIR):
 	@mkdir -p $(BSV_BUILD) $(BSV_VERILOG) $(BSV_INFO) $(BSV_SIM) $(VERILATOR_OBJ)
 
+$(TOOLS_BUILD):
+	@mkdir -p $(TOOLS_BUILD)
+
 .PHONY: tests
 tests: submodules
 	$(MAKE) -C $(ISA_TESTS)  -j$(NPROC)
 	$(MAKE) -C $(BENCHMARKS) -j$(NPROC)
 
+$(TOOLS_BUILD)/elf_to_hex: $(TOOLS_BUILD)
+	cd $(TOOLS)/elf_to_hex && make
+	mv $(TOOLS)/elf_to_hex/elf_to_hex $(TOOLS_BUILD)
+
 .PHONY: clean
 clean:
-	@rm -rf $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR) $(TOOLS_BUILD)
 
 .PHONY: help
 help:
