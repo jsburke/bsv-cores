@@ -20,7 +20,7 @@
 #                                      default barrel
 #      --init-mem-zero                 Initial memory zero option (default off)
 #      --target   <target_name>        specify a makefile target
-#                                      [all (default), verilog, bsim, verilator]
+#                                      [all (default), verilog, bsim, verilator, iverilog]
 #      --top-file <path/to/file>       Specifies a new top file for bsc
 #                                      may cause simulation behavior to break
 #      --bsc-path <list:of:paths>      new colon separated list of directories to
@@ -48,7 +48,7 @@ fabrics     = ["FABRIC32", "FABRIC64"]
 multipliers = ["serial", "synth"]
 shifters    = ["serial", "barrel", "mult"]
 near_mems   = ["Caches", "TCM"]
-targets     = ["all", "verilog", "bsim", "verilator"]
+targets     = ["all", "verilog", "bsim", "verilator", "iverilog"]
 
 # script controls
 
